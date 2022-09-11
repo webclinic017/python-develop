@@ -75,6 +75,13 @@ def ticker_24hr_price_change(self,symbol=None):
     }
     return self.query(url_path,params)
 
+def ticker_price(self,symbol=None):
+    url_path = "/fapi/v1/ticker/price"
+    params={
+        "symbol":symbol,
+    }
+    return self.query(url_path,params)
+
 def book_ticker(self,symbol=None):
     url_path = "/fapi/v1/ticker/bookTicker"
     params={
@@ -82,45 +89,45 @@ def book_ticker(self,symbol=None):
     }
     return self.query(url_path,params)
 
-def open_interestr(self,symbol):
+def open_interest(self,symbol):
     url_path = "/fapi/v1/openInterest"
     params={
         "symbol":symbol,
     }
     return self.query(url_path,params)
 
-def open_interest_hist(self,symbol,period,**kwargs):
+def open_interest_hist(self,symbol,interval,**kwargs):
     url_path = "/futures/data/openInterestHist"
     params={
         "symbol":symbol,
-        "period":period,
+        "period":interval,
         **kwargs
     }
     return self.query(url_path,params)
 
-def top_long_short_position_ratio(self,symbol,period,**kwargs):
+def top_long_short_position_ratio(self,symbol,interval,**kwargs):
     url_path = "/futures/data/topLongShortPositionRatio"
     params={
         "symbol":symbol,
-        "period":period,
+        "period":interval,
         **kwargs
     }
     return self.query(url_path,params)
 
-def top_long_short_account_ratio(self,symbol,period,**kwargs):
+def top_long_short_account_ratio(self,symbol,interval,**kwargs):
     url_path = "/futures/data/topLongShortAccountRatio"
     params={
         "symbol":symbol,
-        "period":period,
+        "period":interval,
         **kwargs
     }
     return self.query(url_path,params)
 
-def taker_long_short_ratio(self,symbol,period,**kwargs):
+def taker_long_short_ratio(self,symbol,interval,**kwargs):
     url_path = "/futures/data/takerlongshortRatio"
     params={
         "symbol":symbol,
-        "period":period,
+        "period":interval,
         **kwargs
     }
     return self.query(url_path,params)
