@@ -44,15 +44,6 @@ def agg_trades(self,symbol,**kwargs):
     }
     return self.query(url_path,params)
 
-def agg_trades(self,symbol,interval,**kwargs):
-    url_path = "fapi/v1/klines"
-    params={
-        "symbol":symbol,
-        "interval":interval,
-        **kwargs
-    }
-    return self.query(url_path,params)
-
 def klines(self,symbol,interval,**kwargs):
     url_path = "/fapi/v1/klines"
     params={
