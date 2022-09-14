@@ -1,5 +1,4 @@
 
-from cgitb import reset
 import hmac
 import json
 import hashlib
@@ -27,6 +26,15 @@ class API():
     def query(self,url_path,payload=None):
         return self.send_request("GET",url_path,payload=payload)
 
+    def sign_request(self,http_method,url_path,payload=None):
+        if payload is None:
+            payload={}
+        payload["timestamp"]=get_timestamp()
+        query_string=self._prepare_params(payload)
+        signature=self._get_sign(query_string)
+        payload["signature"] = signature
+        return self.send_request(http_method,url_path,payload)
+
     def send_request(self,http_method,url_path,payload=None):
         if payload is None:
             payload={}
@@ -37,6 +45,7 @@ class API():
                 "params":self._prepare_params(payload)
             }
         )
+        print(params)
         response=self._dispatch_request(http_method)(**params)
         data=response.json()
         return data
@@ -48,6 +57,10 @@ class API():
             "PUT": self.session.put,
             "POST": self.session.post,
         }.get(http_method,"GET")
+
+    def _get_sign(self,data):
+        m = hmac.new(self.secret.encode("utf-8"), data.encode("utf-8"), hashlib.sha256)
+        return m.hexdigest()
 
     def _prepare_params(self, params):
         return encoded_string(cleanNoneValue(params))

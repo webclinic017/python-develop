@@ -6,6 +6,7 @@ class Spot(API):
             kwargs["base_url"] = "https://api.binance.com"
         super().__init__(key, secret, **kwargs)
 
+    #market
     from Binance.spot.market import ping
     from Binance.spot.market import time
     from Binance.spot.market import exchange_info
@@ -19,3 +20,7 @@ class Spot(API):
     from Binance.spot.market import ticker_price
     from Binance.spot.market import book_ticker
     from Binance.spot.market import rolling_window_ticker
+
+    #trade
+    from Binance.spot.trade import new_order
+    from Binance.spot.trade import account

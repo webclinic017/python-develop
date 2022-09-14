@@ -1,10 +1,11 @@
 from Binance.api import API
 
+
 class Futures(API):
-    def __init__(self,key=None,secret=None,**kwargs):
+    def __init__(self, key=None, secret=None, **kwargs):
         if "base_url" not in kwargs:
-            kwargs["base_url"]="https://fapi.binance.com"
-        super().__init__(key,secret,**kwargs)
+            kwargs["base_url"] = "https://fapi.binance.com"
+        super().__init__(key, secret, **kwargs)
 
     from Binance.futures.market import ping
     from Binance.futures.market import time
@@ -24,6 +25,6 @@ class Futures(API):
     from Binance.futures.market import top_long_short_position_ratio
     from Binance.futures.market import top_long_short_account_ratio
     from Binance.futures.market import taker_long_short_ratio
-    
+
 
 
