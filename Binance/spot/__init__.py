@@ -23,4 +23,19 @@ class Spot(API):
 
     #trade
     from Binance.spot.trade import new_order
+    from Binance.spot.trade import cancel_order
+    from Binance.spot.trade import cancel_open_orders
+    from Binance.spot.trade import get_order
+    from Binance.spot.trade import cancel_and_replace
+    from Binance.spot.trade import get_open_orders
+    from Binance.spot.trade import get_order
+    from Binance.spot.trade import new_oco_order
+    from Binance.spot.trade import cancel_oco_order
+    from Binance.spot.trade import get_oco_order
+    from Binance.spot.trade import get_oco_orders
+    from Binance.spot.trade import get_oco_open_orders
     from Binance.spot.trade import account
+    from Binance.spot.trade import my_trades
+    from Binance.spot.trade import get_order_rate_limit
+
+    

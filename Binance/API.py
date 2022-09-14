@@ -45,7 +45,6 @@ class API():
                 "params":self._prepare_params(payload)
             }
         )
-        print(params)
         response=self._dispatch_request(http_method)(**params)
         data=response.json()
         return data
