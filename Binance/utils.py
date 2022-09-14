@@ -1,4 +1,5 @@
 import time
+import json
 from urllib.parse import urlencode
 
 def cleanNoneValue(d):
@@ -13,3 +14,9 @@ def get_timestamp():
 
 def encoded_string(query):
     return urlencode(query)
+
+def convert_list_to_json_array(symbols):
+    if symbols is None:
+        return symbols
+    res = json.dumps(symbols)
+    return res.replace(" ", "")
