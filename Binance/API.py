@@ -1,6 +1,9 @@
 import requests
+import hmac
+import hashlib
 from Binance.utils import cleanNoneValue
 from Binance.utils import encoding_string
+from Binance.utils import get_timestamp
 
 class API(object):
     def __init__(self,key=None,secret=None,base_url=None):
@@ -22,18 +25,37 @@ class API(object):
     def limit_request(self,http_method,url_path,payload=None):
         return self.send_request(http_method,url_path,payload)
 
+    def sign_request(self,http_method,url_path,payload=None):
+        if payload is None:
+            payload={}
+        payload["timestamp"]=get_timestamp()
+        query_string=self._prepare_params(payload)
+        signature=self._get_sign(query_string)
+        payload["signature"]=signature
+        return self.send_request(http_method,url_path,payload)
+
     def send_request(self,http_method,url_path,payload=None):
         if payload is None:
             payload={}
         url=self.base_url+url_path
-        print(url)
+        #print(url)
         params=cleanNoneValue({
             "url":url,
-            "params":self._prepare_params(payload)
+            "params":self._prepare_params(payload),
+            #"timeout": self.timeout,
+            #"proxies": self.proxies,
         })
         response=self._dispath_request(http_method)(**params)
+        print(response.url)
         data=response.json()
         return data
+
+    def _prepare_params(self,params):
+        return encoding_string(cleanNoneValue(params))
+
+    def _get_sign(self,data):
+        m=hmac.new(self.secret.encode("utf-8"),data.encode("utf-8"),hashlib.sha256)
+        return m.hexdigest()
 
     def _dispath_request(self,http_method):
         return {

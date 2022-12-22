@@ -7,6 +7,7 @@ class Spot(API):
             kwargs["base_url"]="https://api.binance.com"
             super().__init__(key,secret,**kwargs)
 
+    #market
     def ping(self):
         url_path="/api/v3/ping"
         return self.query(url_path)
@@ -94,7 +95,7 @@ class Spot(API):
         }
         return self.query(url_path, params)
 
-    def book_ticker(self, symbol = None, symbols = None,**kwargs):
+    def rolling_window_ticker(self, symbol = None, symbols = None,**kwargs):
         url_path = "/api/v3/ticker"
         params = {
             "symbol": symbol,
@@ -102,3 +103,22 @@ class Spot(API):
             **kwargs
         }
         return self.query(url_path, params)
+    
+    #trade
+    def new_order(self,symbol,side,type,**kwargs):
+        url_path = "/api/v3/order"
+        params = {
+            "symbol": symbol,
+            "side": side,
+            "type": type,
+            **kwargs
+        }
+        return self.sign_request("POST",url_path, params)
+
+    def cancel_order(self, symbol: str, **kwargs):
+        url_path = "/api/v3/order"
+        params = {
+            "symbol": symbol,
+            **kwargs
+        }
+        return self.sign_request("DELETE",url_path, params)
