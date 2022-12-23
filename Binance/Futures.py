@@ -22,7 +22,7 @@ class Futures(API):
         return self.query(url_path)
 
     def depth(self, symbol, **kwargs):
-        url_path = "/fapi/v3/depth"
+        url_path = "/fapi/v1/depth"
         params = {
             "symbol": symbol,
             **kwargs
@@ -30,7 +30,7 @@ class Futures(API):
         return self.query(url_path, params)
 
     def trades(self, symbol, **kwargs):
-        url_path = "/fapi/v3/trades"
+        url_path = "/fapi/v1/trades"
         params = {
             "symbol": symbol,
             **kwargs
@@ -105,47 +105,47 @@ class Futures(API):
         }
         return self.query(url_path, params)
 
-    def open_interest_hist(self, symbol, period, **kwargs):
+    def open_interest_hist(self, symbol, interval, **kwargs):
         url_path = "/futures/data/openInterestHist"
         params = {
             "symbol": symbol,
-            "period": period,
+            "period": interval,
             **kwargs
         }
         return self.query(url_path, params)
 
-    def top_long_short_position_ratio(self, symbol, period, **kwargs):
-        url_path = "/futures/data/topLongShortPositionRatio"
-        params = {
-            "symbol": symbol,
-            "period": period,
-            **kwargs
-        }
-        return self.query(url_path, params)
-
-    def long_short_account_ratio(self, symbol, period, **kwargs):
-        url_path = "/futures/data/globalLongShortAccountRatio"
-        params = {
-            "symbol": symbol,
-            "period": period,
-            **kwargs
-        }
-        return self.query(url_path, params)
-
-    def top_long_short_account_ratio(self, symbol, period, **kwargs):
+    def top_long_short_account_ratio(self, symbol, interval, **kwargs):
         url_path = "/futures/data/topLongShortAccountRatio"
         params = {
             "symbol": symbol,
-            "period": period,
+            "period": interval,
             **kwargs
         }
         return self.query(url_path, params)
 
-    def taker_long_short_ratio(self, symbol, period, **kwargs):
+    def top_long_short_position_ratio(self, symbol, interval, **kwargs):
+        url_path = "/futures/data/topLongShortPositionRatio"
+        params = {
+            "symbol": symbol,
+            "period": interval,
+            **kwargs
+        }
+        return self.query(url_path, params)
+
+    def long_short_account_ratio(self, symbol, interval, **kwargs):
+        url_path = "/futures/data/globalLongShortAccountRatio"
+        params = {
+            "symbol": symbol,
+            "period": interval,
+            **kwargs
+        }
+        return self.query(url_path, params)
+
+    def taker_long_short_ratio(self, symbol, interval, **kwargs):
         url_path = "/futures/data/takerlongshortRatio"
         params = {
             "symbol": symbol,
-            "period": period,
+            "period": interval,
             **kwargs
         }
         return self.query(url_path, params)
