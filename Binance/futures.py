@@ -148,88 +148,241 @@ class Futures(API):
             **kwargs
         }
         return self.query(url_path, params)
-    
-    #trade
-    def new_order(self,symbol,side,type,**kwargs):
-        url_path = "/api/v3/order"
+
+    #account and trade
+
+    def change_position_mode(self, dualSidePosition, **kwargs):
+        url_path = "/fapi/v1/positionSide/dual"
         params = {
-            "symbol": symbol,
-            "side": side,
-            "type": type,
+            "dualSidePosition": dualSidePosition, 
             **kwargs
         }
-        return self.sign_request("POST",url_path, params)
+        return self.sign_request("POST", url_path, params)
 
-    def cancel_order(self, symbol: str, **kwargs):
-        url_path = "/api/v3/order"
+    def get_position_mode(self, **kwargs):
+        url_path = "/fapi/v1/positionSide/dual"
         params = {
-            "symbol": symbol,
             **kwargs
         }
-        return self.sign_request("DELETE",url_path, params)
+        return self.sign_request("GET", url_path, params)
 
-    def cancel_open_orders(self, symbol: str, **kwargs):
-        url_path = "/api/v3/openOrders"
+    def change_multi_asset_mode(self, multiAssetsMargin, **kwargs):
+        url_path = "/fapi/v1/multiAssetsMargin"
         params = {
-            "symbol": symbol,
+            "multiAssetsMargin": multiAssetsMargin,
             **kwargs
         }
-        return self.sign_request("DELETE",url_path, params)
+        return self.sign_request("POST", url_path, params)
 
-    def get_order(self, symbol, **kwargs):
-        url_path = "/api/v3/order"
-        payload = {
-            "symbol": symbol,
+    def get_multi_asset_mode(self, **kwargs):
+        url_path = "/fapi/v1/multiAssetsMargin"
+        params = {
             **kwargs
         }
-        return self.sign_request("DELETE",url_path, payload)
+        return self.sign_request("GET", url_path, params)
 
-    def cancel_and_replace(self, symbol, side, type, cancelReplaceMode, **kwargs):
-        url_path = "/api/v3/order/cancelReplace"
-        payload = {
-        "symbol": symbol,
-        "side": side,
-        "type": type,
-        "cancelReplaceMode": cancelReplaceMode,
-        **kwargs,
+    def new_order(self, symbol, side, type, **kwargs):
+        url_path = "/fapi/v1/order"
+        params = {
+            "symbol": symbol, 
+            "side": side, 
+            "type": type, 
+            **kwargs
         }
-        return self.sign_request("POST", url_path, payload)
+        return self.sign_request("POST", url_path, params)
 
-    def get_open_orders(self, symbol=None, **kwargs):
-        url_path = "/api/v3/openOrders"
-        payload = {
-        "symbol": symbol,
-        **kwargs,
+    def new_batch_order(self, batchOrders: list):
+        url_path = "/fapi/v1/batchOrders"
+        params = {
+            "batchOrders": batchOrders
         }
-        return self.sign_request("GET", url_path, payload)
+        return self.sign_request("POST", url_path, params)
 
-    def get_orders(self, symbol, **kwargs):
-        url_path = "/api/v3/allOrders"
-        payload = {
-        "symbol": symbol,
-        **kwargs,
+    def query_order(self, symbol, orderId = None, origClientOrderId = None, **kwargs):
+        url_path = "/fapi/v1/order"
+        params = {
+            "symbol": symbol, 
+            "orderId": orderId, 
+            "origClientOrderId": origClientOrderId,
+            **kwargs
         }
-        return self.sign_request("GET", url_path, payload)
+        return self.sign_request("GET", url_path, params)
+
+    def cancel_order(self, symbol, orderId = None, origClientOrderId = None, **kwargs):
+        url_path = "/fapi/v1/order"
+        params = {
+            "symbol": symbol, 
+            "orderId": orderId, 
+            "origClientOrderId": origClientOrderId,
+            **kwargs
+        }
+        return self.sign_request("DELETE", url_path, params)
+
+    def cancel_open_orders(self, symbol, **kwargs):
+        url_path = "/fapi/v1/allOpenOrders"
+        params = {
+            "symbol": symbol, 
+            **kwargs
+            }
+        return self.sign_request("DELETE", url_path, params)
+
+    def cancel_batch_order(self, symbol, orderIdList:list = None, origClientOrderIdList:list = None, **kwargs):
+        url_path = "/fapi/v1/batchOrders"
+        params = {
+            "symbol": symbol, 
+            "orderIdList": convert_list_to_json_array(orderIdList),
+            "origClientOrderIdList": convert_list_to_json_array(origClientOrderIdList),
+            **kwargs
+        }
+        return self.sign_request("DELETE", url_path, params)
+
+    def get_open_orders(self, symbol, orderId = None, origClientOrderId = None, **kwargs):
+        url_path = "/fapi/v1/openOrder"
+        params = {
+            "symbol": symbol, 
+            "orderId": orderId, 
+            "origClientOrderId": origClientOrderId,
+            **kwargs
+        }
+        return self.sign_request("GET", url_path, params)
+
+    def get_orders(self, **kwargs):
+        url_path = "/fapi/v1/openOrders"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def get_all_orders(self, symbol: str, **kwargs):
+        url_path = "/fapi/v1/allOrders"
+        params = {
+            "symbol": symbol, 
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def balance(self, **kwargs):
+        url_path = "/fapi/v2/balance"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
 
     def account(self, **kwargs):
-        url_path = "/api/v3/account"
-        payload = {
-        **kwargs,
-        }
-        return self.sign_request("GET", url_path, payload)
+        url_path = "/fapi/v2/account"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
 
-    def my_trades(self, symbol, **kwargs):
-        url_path = "/api/v3/myTrades"
-        payload = {
-        "symbol": symbol,
-        **kwargs,
-        }
-        return self.sign_request("GET", url_path, payload)
+    def change_leverage(self, symbol, leverage, **kwargs):
+        url_path = "/fapi/v1/leverage"
+        params = {
+            "symbol": symbol, 
+            "leverage": leverage, 
+            **kwargs
+            }
+        return self.sign_request("POST", url_path, params)
 
-    def get_order_rate_limit(self, **kwargs):
-        url_path = "/api/v3/rateLimit/order"
-        payload = {
-        **kwargs,
-        }
-        return self.sign_request("GET", url_path, payload)
-        
+    def change_margin_type(self, symbol, marginType, **kwargs):
+        url_path = "/fapi/v1/marginType"
+        params = {
+            "symbol": symbol, 
+            "marginType": marginType, 
+            **kwargs
+            }
+        return self.sign_request("POST", url_path, params)
+
+    def modify_isolated_position_margin(self, symbol, amount, type, **kwargs):
+        url_path = "/fapi/v1/positionMargin"
+        params = {
+            "symbol": symbol, 
+            "amount": amount, 
+            "type": type, 
+            **kwargs
+            }
+        return self.sign_request("POST", url_path, params)
+
+    def get_position_margin_history(self, symbol, **kwargs):
+        url_path = "/fapi/v1/positionMargin/history"
+        params = {
+            "symbol": symbol, 
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def get_position_risk(self, **kwargs):
+        url_path = "/fapi/v2/positionRisk"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def get_account_trades(self, symbol, **kwargs):
+        url_path = "/fapi/v1/userTrades"
+        params = {
+            "symbol": symbol, 
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def get_income_history(self, **kwargs):
+        url_path = "/fapi/v1/income"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def leverage_brackets(self, **kwargs):
+        url_path = "/fapi/v1/leverageBracket"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def adl_quantile(self, **kwargs):
+        url_path = "/fapi/v1/adlQuantile"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def force_orders(self, **kwargs):
+        url_path = "/fapi/v1/forceOrders"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def api_trading_status(self, **kwargs):
+        url_path = "/fapi/v1/apiTradingStatus"
+        params = {
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def commission_rate(self, symbol, **kwargs):
+        url_path = "/fapi/v1/commissionRate"
+        params = {
+            "symbol": symbol, 
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def download_transactions_asyn(self, startTime, endTime, **kwargs):
+        url_path = "/fapi/v1/income/asyn"
+        params = {
+            "startTime": startTime, 
+            "endTime": endTime, 
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+
+    def aysnc_download_info(self, downloadId, **kwargs):
+        url_path = "/fapi/v1/income/asyn/id"
+        params = {
+            "downloadId": downloadId, 
+            **kwargs
+            }
+        return self.sign_request("GET", url_path, params)
+    
