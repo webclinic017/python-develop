@@ -11,5 +11,5 @@ print(res)
 
 client=Client(key=api_key,secret=secret_key)
 #response=client.new_order(symbol="BTCUSDT",type="LIMIT",side="BUY",quantity=0.0015,price=10000,timeInForce="GTC")
-response=client.cancel_order(symbol="BTCUSDT",orderId=16673859598)
+response=client.account()
 print(response)

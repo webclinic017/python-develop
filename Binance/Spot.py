@@ -122,3 +122,69 @@ class Spot(API):
             **kwargs
         }
         return self.sign_request("DELETE",url_path, params)
+
+    def cancel_open_orders(self, symbol: str, **kwargs):
+        url_path = "/api/v3/openOrders"
+        params = {
+            "symbol": symbol,
+            **kwargs
+        }
+        return self.sign_request("DELETE",url_path, params)
+
+    def get_order(self, symbol, **kwargs):
+        url_path = "/api/v3/order"
+        payload = {
+            "symbol": symbol,
+            **kwargs
+        }
+        return self.sign_request("DELETE",url_path, payload)
+
+    def cancel_and_replace(self, symbol, side, type, cancelReplaceMode, **kwargs):
+        url_path = "/api/v3/order/cancelReplace"
+        payload = {
+        "symbol": symbol,
+        "side": side,
+        "type": type,
+        "cancelReplaceMode": cancelReplaceMode,
+        **kwargs,
+        }
+        return self.sign_request("POST", url_path, payload)
+
+    def get_open_orders(self, symbol=None, **kwargs):
+        url_path = "/api/v3/openOrders"
+        payload = {
+        "symbol": symbol,
+        **kwargs,
+        }
+        return self.sign_request("GET", url_path, payload)
+
+    def get_orders(self, symbol, **kwargs):
+        url_path = "/api/v3/allOrders"
+        payload = {
+        "symbol": symbol,
+        **kwargs,
+        }
+        return self.sign_request("GET", url_path, payload)
+
+    def account(self, **kwargs):
+        url_path = "/api/v3/account"
+        payload = {
+        **kwargs,
+        }
+        return self.sign_request("GET", url_path, payload)
+
+    def my_trades(self, symbol, **kwargs):
+        url_path = "/api/v3/myTrades"
+        payload = {
+        "symbol": symbol,
+        **kwargs,
+        }
+        return self.sign_request("GET", url_path, payload)
+
+    def get_order_rate_limit(self, **kwargs):
+        url_path = "/api/v3/rateLimit/order"
+        payload = {
+        **kwargs,
+        }
+        return self.sign_request("GET", url_path, payload)
+        
