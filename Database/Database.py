@@ -2,7 +2,7 @@ import pymysql
 import datetime
 
 class Database(object):
-    def __init__(self,HOST="localhost",USER="root",PASSWORD="123456",database="data",charset="utf-8",autocommit=True):
+    def __init__(self,HOST="localhost",USER="root",PASSWORD="123456",database="data",charset="utf8",autocommit=True):
         self.host=HOST
         self.user=USER
         self.password=PASSWORD
@@ -74,6 +74,6 @@ class Database(object):
         results=self.cursor.fetchall()
         return results[0][0]
 
-    def to_datetime(timestamp)->(int):
+    def to_datetime(self,timestamp)->(int):
         Time = datetime.datetime.utcfromtimestamp(timestamp // 1000 + 8 * 60 * 60)
         return Time
