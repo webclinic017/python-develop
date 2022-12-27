@@ -31,12 +31,46 @@ class Database(object):
         #print(insert_sql)
         self.cursor.execute(insert_sql)
 
+    def insert_trades(self,symbol,trades):
+        table_name="{}_TRADE".format(symbol)
+        exist=self.exist_table(table_name)
+        if(not exist):
+            self.new_table_trades(symbol)
+        #print(trades)
+        for trade in trades:
+            #print(trade)
+            insert_sql="insert into {} values('{}',{},{},{},{},{},{});".format(table_name,self.to_datetime(trade["time"]),trade["id"],trade["price"],trade["qty"],trade["quoteQty"],trade["time"],trade["isBuyerMaker"])
+            self.cursor.execute(insert_sql)
+        #print("Insert klines success")
+
+    def insert_trade(self,symbol,trade):
+        table_name="{}_TRADE".format(symbol)
+        exist=self.exist_table(table_name)
+        if(not exist):
+            self.new_table_trades(symbol)
+        #print(trade)
+        #insert_sql="insert into {} values('{}',{},{},{},{},{},{});".format(table_name,self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
+        insert_sql = "insert into {} values('{}',{},{},{},{},{},{});".format(table_name,
+                                                                             self.to_datetime(int(trade["1643673600136"])),
+                                                                             trade["1396807899"], trade["2685.34"], trade["0.002"],
+                                                                             trade["5.37"], trade["1643673600136"],
+                                                                             trade["true"])
+        try:
+            self.cursor.execute(insert_sql)
+        except Exception:
+            1+1
+
+
     def new_table_klines(self,symbol,interval):
         sql="create table {}_KLINES_{}(time timestamp,Open_time bigint primary key,Open double,High double,Low double,Close double,Volume double,Close_time bigint,Quote_asset_volume double);".format(symbol,interval)
         self.cursor.execute(sql)
 
     def new_table_orders(self,symbol,interval):
         sql="create table {}_ORDER_{}(time timestamp,updateTime bigint primary key,orderId bigint,positionSide varchar(20),side varchar(20),origQty float,price float);".format(symbol,interval)
+        self.cursor.execute(sql)
+
+    def new_table_trades(self,symbol):
+        sql="create table {}_TRADE(time timestamp,id bigint primary key,price float,qty float,quoteQty float,ttime bigint,isBuyerMaker varchar(20));".format(symbol)
         self.cursor.execute(sql)
 
     def exist_table(self,table_name):
@@ -66,6 +100,14 @@ class Database(object):
         self.cursor.execute(sql)
         results=self.cursor.fetchall()
         return results
+
+    def get_last_trade(self,symbol):
+        table_name = "{}_TRADE".format(symbol)
+        sql = "select max(id) from {};".format(table_name)
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        print(results[0][0])
+        return results[0][0]
 
     def get_maxOpenTime(self,symbol,interval):
         table_name = "{}_KLINES_{}".format(symbol, interval)
