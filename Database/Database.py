@@ -1,5 +1,6 @@
 import pymysql
 import datetime
+import time
 
 class Database(object):
     def __init__(self,HOST="localhost",USER="root",PASSWORD="123456",database="data",charset="utf8",autocommit=True):
@@ -51,15 +52,35 @@ class Database(object):
         #print(trade)
         #insert_sql="insert into {} values('{}',{},{},{},{},{},{});".format(table_name,self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
         insert_sql = "insert into {} values('{}',{},{},{},{},{},{});".format(table_name,
-                                                                             self.to_datetime(int(trade["1643673600136"])),
-                                                                             trade["1396807899"], trade["2685.34"], trade["0.002"],
-                                                                             trade["5.37"], trade["1643673600136"],
-                                                                             trade["true"])
+                                                                             self.to_datetime(int(trade["1654041602556"])),
+                                                                             trade["1698207560"], trade["1941.68"], trade["0.592"],
+                                                                             trade["1149.47"], trade["1654041602556"],
+                                                                             trade["false"])
         try:
             self.cursor.execute(insert_sql)
         except Exception:
             1+1
 
+    def count_trade(self,symbol,interval=10):
+        sql = "select count(case when qty>=20 and qty<{} then 1 end) as \'20-{}\',".format(20+interval,20+interval)
+        start=20+interval
+        interval=interval*2
+        while(True):
+            sql=sql+("count(case when qty>={} and qty<{} then 1 end) as \'{}-{}\',".format(start,start+interval,start,start+interval))
+            start+=interval
+            interval=interval*2
+            if(start>=5000):
+                break
+        sql=sql+"count(case when qty>={} then 1 end) as \'{}+\'".format(start,start)
+        sql=sql+" from {}_TRADE;".format(symbol)
+        #print(sql)
+        start=time.time()
+        self.cursor.execute(sql)
+        end=time.time()
+        print((end-start)/1000)
+        data=list(self.cursor.fetchall()[0])
+        print(data)
+        return data
 
     def new_table_klines(self,symbol,interval):
         sql="create table {}_KLINES_{}(time timestamp,Open_time bigint primary key,Open double,High double,Low double,Close double,Volume double,Close_time bigint,Quote_asset_volume double);".format(symbol,interval)
@@ -94,6 +115,17 @@ class Database(object):
             klines.append(list(i))
         return klines
 
+    def select_trade(self,symbol,minqty=3000000):
+        table_name = "{}_TRADE".format(symbol)
+        sql = "select time,price,qty,quoteQty,isBuyerMaker from {} where quoteQty>{}".format(table_name,minqty)
+        self.cursor.execute(sql)
+        data = self.cursor.fetchall()
+        trades=[]
+        for i in data:
+            trades.append(list(i))
+        return trades
+
+
     def get_last_order(self,symbol,interval):
         table_name = "{}_ORDER_{}".format(symbol, interval)
         sql="select * from {} order by id desc limit 1".format(table_name)
@@ -119,3 +151,8 @@ class Database(object):
     def to_datetime(self,timestamp)->(int):
         Time = datetime.datetime.utcfromtimestamp(timestamp // 1000 + 8 * 60 * 60)
         return Time
+
+
+
+
+#select * from ethusdt_trade where qty<50 order by id desc limit 10;

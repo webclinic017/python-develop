@@ -10,11 +10,11 @@ symbol="ETHUSDT"
 i=1
 qty=0.002
 #with open("E:\\data\\ETHUSDT-trades-2022-01.csv", "r", encoding="utf-8") as f:
-with open("E:\\data\\ETHUSDT-trades-2022-02.csv", "r", encoding="utf-8") as f:
+#with open("E:\\data\\ETHUSDT-trades-2022-02.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-03.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-04.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-05.csv", "r", encoding="utf-8") as f:
-#with open("E:\\data\\ETHUSDT-trades-2022-06.csv", "r", encoding="utf-8") as f:
+with open("E:\\data\\ETHUSDT-trades-2022-06.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-07.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-08.csv","r",encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-09.csv", "r", encoding="utf-8") as f:
@@ -28,7 +28,7 @@ with open("E:\\data\\ETHUSDT-trades-2022-02.csv", "r", encoding="utf-8") as f:
 
         #if (float(item["0.002"]) >= 100):     #10000
         #if(float(item["0.071"])>=50 and float(item["0.071"])<100):     #28000
-        if (float(item["0.002"]) >= 20 and float(item["0.002"]) < 100):  #199000
+        if (float(item["0.592"]) >= 20 and float(item["0.592"]) < 100):  #199000
 
             i+=1
             Database.insert_trade(symbol=symbol,trade=item)
