@@ -44,18 +44,35 @@ class Database(object):
             self.cursor.execute(insert_sql)
         #print("Insert klines success")
 
+    def batch_insert_trade(self,symbol,trades:list):
+        table_name="{}_TRADE".format(symbol)
+        exist=self.exist_table(table_name)
+        if(not exist):
+            self.new_table_trades(symbol)
+        #print(trade)
+        insert_sql="insert into {} values ".format(table_name)
+        length=len(trades)
+        for i in range(length-1):
+            trade=trades[i]
+            insert_sql+="('{}',{},{},{},{},{},{}),".format(self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
+        trade = trades[length-1]
+        insert_sql += "('{}',{},{},{},{},{},{});".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quote_qty"],trade["time"], trade["is_buyer_maker"])
+
+        self.cursor.execute(insert_sql)
+
+
     def insert_trade(self,symbol,trade):
         table_name="{}_TRADE".format(symbol)
         exist=self.exist_table(table_name)
         if(not exist):
             self.new_table_trades(symbol)
         #print(trade)
-        #insert_sql="insert into {} values('{}',{},{},{},{},{},{});".format(table_name,self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
-        insert_sql = "insert into {} values('{}',{},{},{},{},{},{});".format(table_name,
-                                                                             self.to_datetime(int(trade["1654041602556"])),
-                                                                             trade["1698207560"], trade["1941.68"], trade["0.592"],
-                                                                             trade["1149.47"], trade["1654041602556"],
-                                                                             trade["false"])
+        insert_sql="insert into {} values('{}',{},{},{},{},{},{});".format(table_name,self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
+        #insert_sql = "insert into {} values('{}',{},{},{},{},{},{});".format(table_name,
+        #                                                                     self.to_datetime(int(trade["1654041602556"])),
+         #                                                                    trade["1698207560"], trade["1941.68"], trade["0.592"],
+         #                                                                    trade["1149.47"], trade["1654041602556"],
+         #                                                                    trade["false"])
         try:
             self.cursor.execute(insert_sql)
         except Exception:
@@ -125,6 +142,15 @@ class Database(object):
             trades.append(list(i))
         return trades
 
+    def select_trade_to_csv(self,symbol,minqty=100,limit=10000):
+        table_name = "{}_TRADE".format(symbol)
+        sql = "select ttime,price,qty,isBuyerMaker from {} where qty>{} order by ttime desc limit {}".format(table_name,minqty,limit)
+        self.cursor.execute(sql)
+        data = reversed(self.cursor.fetchall())
+        trades=[]
+        for i in data:
+            trades.append(list(i))
+        return trades
 
     def get_last_order(self,symbol,interval):
         table_name = "{}_ORDER_{}".format(symbol, interval)

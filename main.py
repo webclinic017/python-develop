@@ -20,7 +20,7 @@ response=client.exchange_info()
 symbols=response["symbols"]
 onboardDate=1
 for i in symbols:
-    if i["symbol"] == "BTCUSDT":
+    if i["symbol"] == symbol:
         onboardDate=i["onboardDate"]
 
 print(onboardDate)
