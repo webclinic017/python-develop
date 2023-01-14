@@ -4,7 +4,7 @@ import time
 
 Database=Database()
 
-symbol="ETHUSDT_TEST"
+symbol="ETHUSDT"
 
 
 i=1
@@ -30,7 +30,7 @@ qty=0.002
 #with open("E:\\data\\ETHUSDT-trades-2022-12-16.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-12-17.csv", "r", encoding="utf-8") as f:
 #with open("E:\\data\\ETHUSDT-trades-2022-12-18.csv", "r", encoding="utf-8") as f:
-with open("E:\\data\\ETHUSDT-trades-2022-12-28.csv", "r", encoding="utf-8") as f:
+with open("E:\\data\\ETHUSDT-trades-2023-01-12.csv", "r", encoding="utf-8") as f:
     reader=csv.DictReader(f)
     items=[]
     for item in reader:

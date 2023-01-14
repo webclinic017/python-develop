@@ -45,6 +45,9 @@ class Database(object):
         #print("Insert klines success")
 
     def batch_insert_trade(self,symbol,trades:list):
+        if(len(trades)==0):
+            print("Wrong")
+            return
         table_name="{}_TRADE".format(symbol)
         exist=self.exist_table(table_name)
         if(not exist):
@@ -54,9 +57,9 @@ class Database(object):
         length=len(trades)
         for i in range(length-1):
             trade=trades[i]
-            insert_sql+="('{}',{},{},{},{},{},{}),".format(self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
+            insert_sql+="('{}',{},{},{},{},{},{}),".format(self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quoteQty"],trade["time"],trade["isBuyerMaker"])
         trade = trades[length-1]
-        insert_sql += "('{}',{},{},{},{},{},{});".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quote_qty"],trade["time"], trade["is_buyer_maker"])
+        insert_sql += "('{}',{},{},{},{},{},{});".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quoteQty"],trade["time"], trade["isBuyerMaker"])
 
         self.cursor.execute(insert_sql)
 
@@ -132,11 +135,15 @@ class Database(object):
             klines.append(list(i))
         return klines
 
-    def select_trade(self,symbol,minqty=3000000):
+    def select_trade(self,symbol,minqty=300,desc=False,limit=100):
+        if(desc==False):
+            desc="ASC"
+        else:
+            desc="DESC"
         table_name = "{}_TRADE".format(symbol)
-        sql = "select time,price,qty,quoteQty,isBuyerMaker from {} where quoteQty>{}".format(table_name,minqty)
+        sql = "select time,price,qty,quoteQty,isBuyerMaker from {} where qty>{} order by id {} limit {}".format(table_name,minqty,desc,limit)
         self.cursor.execute(sql)
-        data = self.cursor.fetchall()
+        data = reversed(self.cursor.fetchall())
         trades=[]
         for i in data:
             trades.append(list(i))
