@@ -107,9 +107,55 @@ class Strategy(object):
         plt.show()
 
     def select_klines(self,symbol,interval,limit):
-        return self.database.select_klines(symbol,interval,limit)
+        if(interval=="5m"):
+            return self.database.select_klines(symbol,interval,limit)
+        count=self.__count__klines(interval=interval)
+        klines=self.database.select_klines(symbol=symbol,interval="5m",limit=limit*count)
+        start_k=0
+        for kline in klines:
+            if((kline[0]//1000)%(24*60*60)==0):
+                start_k=klines.index(kline)
+                break
+        start_k=start_k%count
+        print(start_k)
+        return_klines=[]
+        for i in range(start_k,len(klines),count):
+            temp=klines[i]
+            for j in range(i+1,i+count if i+count<len(klines) else len(klines)):
+                temp[5]+=klines[j][5]
+                temp[7]+=klines[j][7]
+                temp[2]=temp[2] if temp[2]>klines[j][2] else klines[j][2]
+                temp[3] = temp[3] if temp[3] < klines[j][3] else klines[j][3]
+                temp[4]=klines[j][4]
+            temp[6]=temp[0]+count*(5*60*1000)-1
+            return_klines.append(temp)
+        return return_klines
 
-    def update_klines(self,symbol, interval, **kwargs):
+
+    def __count__klines(self,interval):
+        if(interval=="15m"):
+            return 3
+        elif(interval=="30m"):
+            return 6
+        elif (interval == "1h"):
+            return 12
+        elif (interval == "2h"):
+            return 24
+        elif (interval == "4h"):
+            return 48
+        elif (interval == "8h"):
+            return 96
+        elif (interval == "12h"):
+            return 144
+        elif (interval == "1d"):
+            return 288
+        else:
+            return 1
+
+    def update_klines(self,symbol):
+        self.__update_klines_5m(symbol=symbol,interval="5m")
+
+    def __update_klines_5m(self,symbol, interval, **kwargs):
         response = self.futures.exchange_info()
         symbols = response["symbols"]
         onboardDate = 1

@@ -1,6 +1,7 @@
 from Strategy.Strategy import Strategy
 import json
 import os
+import time
 
 api_key="c9UnWFmWxaY9gSl0eZ3H9a3EeNNutBmy6F9JGb7HKalGdqKUA5xViSrCbqhe144v"
 secret_key="zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
@@ -8,9 +9,14 @@ secret_key="zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
 strategy=Strategy(key=api_key,secret=secret_key)
 
 symbol="BTCUSDT"
-interval="5m"
+interval="4h"
 
-strategy.update_trades(symbol=symbol)
+strategy.update_klines(symbol=symbol)
+klines=strategy.select_klines(symbol=symbol,interval=interval,limit=200)
+##print(len(klines))
+strategy.plot_K(klines=klines,symbol=symbol)
+
+#strategy.update_klines(symbol=symbol,interval=interval)
 
 #strategy.change_all_lever(leverage=20)
 
