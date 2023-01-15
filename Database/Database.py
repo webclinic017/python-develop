@@ -23,12 +23,12 @@ class Database(object):
             self.cursor.execute(insert_sql)
         print("Insert klines success")
 
-    def insert_order(self,symbol,interval,response):
-        table_name = "{}_ORDER_{}".format(symbol, interval)
+    def insert_order(self,response):
+        table_name = "ORDERS"
         exist = self.exist_table(table_name)
         if (not exist):
-            self.new_table_orders(symbol, interval)
-        insert_sql="insert into {} value('{}',{},{},'{}','{}',{},{})".format(table_name,self.to_datetime(int(response["updateTime"])),int(response["updateTime"]),int(response["orderId"]),response["positionSide"],response["side"],response["origQty"],response["price"])
+            self.new_table_orders()
+        insert_sql="insert into {} values('{}',{},'{}','{}','{}','{}','{}',{},{},{})".format(table_name,self.to_datetime(int(response["updateTime"])),int(response["updateTime"]),response["symbol"],response["orderId"],response["clientOrderId"],response["positionSide"],response["side"],response["origQty"],response["price"],response["avgPrice"])
         #print(insert_sql)
         self.cursor.execute(insert_sql)
 
@@ -57,10 +57,15 @@ class Database(object):
         length=len(trades)
         for i in range(length-1):
             trade=trades[i]
-            insert_sql+="('{}',{},{},{},{},{},{}),".format(self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quoteQty"],trade["time"],trade["isBuyerMaker"])
+            if("quote_qty" in trade.keys()):
+                insert_sql+="('{}',{},{},{},{},{},{}),".format(self.to_datetime(int(trade["time"])),trade["id"],trade["price"],trade["qty"],trade["quote_qty"],trade["time"],trade["is_buyer_maker"])
+            else:
+                insert_sql += "('{}',{},{},{},{},{},{}),".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quoteQty"],trade["time"], trade["isBuyerMaker"])
         trade = trades[length-1]
-        insert_sql += "('{}',{},{},{},{},{},{});".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quoteQty"],trade["time"], trade["isBuyerMaker"])
-
+        if("quote_qty" in trade.keys()):
+            insert_sql += "('{}',{},{},{},{},{},{});".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quote_qty"],trade["time"], trade["is_buyer_maker"])
+        else:
+            insert_sql += "('{}',{},{},{},{},{},{});".format(self.to_datetime(int(trade["time"])), trade["id"],trade["price"], trade["qty"], trade["quoteQty"],trade["time"], trade["isBuyerMaker"])
         self.cursor.execute(insert_sql)
 
 
@@ -106,8 +111,8 @@ class Database(object):
         sql="create table {}_KLINES_{}(time timestamp,Open_time bigint primary key,Open double,High double,Low double,Close double,Volume double,Close_time bigint,Quote_asset_volume double);".format(symbol,interval)
         self.cursor.execute(sql)
 
-    def new_table_orders(self,symbol,interval):
-        sql="create table {}_ORDER_{}(time timestamp,updateTime bigint primary key,orderId bigint,positionSide varchar(20),side varchar(20),origQty float,price float);".format(symbol,interval)
+    def new_table_orders(self):
+        sql="create table ORDERS(time timestamp,updateTime bigint primary key,symbol varchar(20),orderId varchar(30),clientOrderId varchar(30),positionSide varchar(10),side varchar(10),origQty float,price float,avgPrice float);"
         self.cursor.execute(sql)
 
     def new_table_trades(self,symbol):
@@ -137,13 +142,17 @@ class Database(object):
 
     def select_trade(self,symbol,minqty=300,desc=False,limit=100):
         if(desc==False):
-            desc="ASC"
+            desc_f="ASC"
         else:
-            desc="DESC"
+            desc_f="DESC"
         table_name = "{}_TRADE".format(symbol)
-        sql = "select time,price,qty,quoteQty,isBuyerMaker from {} where qty>{} order by id {} limit {}".format(table_name,minqty,desc,limit)
+        sql = "select time,price,qty,quoteQty,isBuyerMaker from {} where qty>{} order by id {} limit {}".format(table_name,minqty,desc_f,limit)
+        #print(sql)
         self.cursor.execute(sql)
-        data = reversed(self.cursor.fetchall())
+        if(desc==True):
+            data = reversed(self.cursor.fetchall())
+        else:
+            data = self.cursor.fetchall()
         trades=[]
         for i in data:
             trades.append(list(i))
@@ -159,20 +168,22 @@ class Database(object):
             trades.append(list(i))
         return trades
 
-    def get_last_order(self,symbol,interval):
-        table_name = "{}_ORDER_{}".format(symbol, interval)
-        sql="select * from {} order by id desc limit 1".format(table_name)
+    def get_last_order(self,symbol):
+        table_name = "ORDERS"
+        sql="select * from {} where symbol='{}' order by updateTime desc limit 1".format(table_name,symbol)
         self.cursor.execute(sql)
         results=self.cursor.fetchall()
-        return results
+        return list(results[0])
 
     def get_last_trade(self,symbol):
         table_name = "{}_TRADE".format(symbol)
+        if(not self.exist_table(table_name=table_name)):
+            return 0
         sql = "select max(id) from {};".format(table_name)
         self.cursor.execute(sql)
         results = self.cursor.fetchall()
         print(results[0][0])
-        return results[0][0]
+        return results[0][0] if results[0][0]!=None else 0
 
     def get_maxOpenTime(self,symbol,interval):
         table_name = "{}_KLINES_{}".format(symbol, interval)
