@@ -9,12 +9,22 @@ secret_key="zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
 strategy=Strategy(key=api_key,secret=secret_key)
 
 symbol="BTCUSDT"
-interval="4h"
+interval="15m"
 
-strategy.update_klines(symbol=symbol)
-klines=strategy.select_klines(symbol=symbol,interval=interval,limit=200)
+response=strategy.depth(symbol=symbol,limit=1000)
+#print(json.dumps(response,indent=2))
+strategy.plot_Depth(depths=response,symbol=symbol)
+
+
+
+
+#strategy.update_trades(symbol=symbol)
+#trades=strategy.plot_Trades_Scatter(symbol=symbol,minqty=20,limit=200)
+
+#strategy.update_klines(symbol=symbol)
+#klines=strategy.select_klines(symbol=symbol,interval=interval,limit=500)
 ##print(len(klines))
-strategy.plot_K(klines=klines,symbol=symbol)
+#strategy.plot_K(klines=klines,symbol=symbol)
 
 #strategy.update_klines(symbol=symbol,interval=interval)
 

@@ -117,7 +117,7 @@ class Strategy(object):
                 start_k=klines.index(kline)
                 break
         start_k=start_k%count
-        print(start_k)
+        #print(start_k)
         return_klines=[]
         for i in range(start_k,len(klines),count):
             temp=klines[i]
@@ -298,3 +298,10 @@ class Strategy(object):
                 if ('code' in response.keys()):
                     response = self.futures.change_leverage(symbol=i["symbol"], leverage=leverage//4)
             print(i["symbol"], response,len(info),info.index(i))
+
+    def depth(self,symbol,limit=100):
+        response=self.futures.depth(symbol=symbol,limit=limit)
+        return response
+
+    def plot_Depth(self,depths,symbol):
+        Plot.plot_Depth(depths=depths,symbol=symbol)

@@ -18,6 +18,28 @@ def plot_K(klines,symbol="TEST"):
     #print(show_data)
     mpf.plot(show_data,type="candle",style="yahoo",volume=True,title=symbol+"-Perpetual")
 
+def plot_Depth(depths,symbol="TEST"):
+    bid_prices=[]
+    bid_vols=[]
+    ask_prices = []
+    ask_vols = []
+    for bid in depths["bids"]:
+        bid_prices.append(float(bid[0]))
+        bid_vols.append(float(bid[1]))
+        if (len(bid_vols) != 0):
+            bid_vols[len(bid_vols) - 1] += bid_vols[len(bid_vols) - 2]
+    bid_prices.reverse()
+    bid_vols.reverse()
+    for ask in depths["asks"]:
+        ask_prices.append(float(ask[0]))
+        ask_vols.append(float(ask[1]))
+        if (len(ask_vols) != 0):
+            ask_vols[len(ask_vols) - 1] += ask_vols[len(ask_vols) - 2]
+    plt.plot(bid_prices,bid_vols,color='g')
+    plt.plot(ask_prices, ask_vols, color='r')
+    plt.title(symbol+" bid : "+str(bid_prices[len(bid_prices)-1])+" ask : "+str(ask_prices[0]))
+    plt.show()
+
 def todate(timestamp):
     timeArray = time.localtime(timestamp / 1000)
     otherStyleTime = time.strftime("%m-%d-%H:%M", timeArray)
@@ -118,25 +140,6 @@ def plot_taker_buy_sell_volume(datas,symbol):
     plt.show()
 
 def plot_ma(close_ma,open_ma,times,intRes=3):
-    '''
-    start = 0
-    n = len(times)
-    for i in range(n):
-        if ((i // 1000) % (24 * 60 * 60) == 0):
-            start = i
-    start = start % intRes
-
-    ma_res_close=[]
-    ma_res_open = []
-    time_x=[]
-    for i in range(start,n):
-        if((i-start)//intRes<len(close_ma)):
-            ma_res_close.append(close_ma[(i - start) // intRes])
-            ma_res_open.append(open_ma[(i - start) // intRes])
-            time_x.append(todate(times[i]))
-        else:
-            time_x.append(todate(times[i]))
-            '''
     start = 0
     n = len(times)
     for i in range(n):
