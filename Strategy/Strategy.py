@@ -28,7 +28,7 @@ class Strategy(object):
             response=self.futures.new_order(symbol=symbol,side="SELL",positionSide="SHORT",type=type,quantity=quantity,**kwargs)
             response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
         else:
-            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="SHORT", type=type,quantity=quantity, timeInForce="GTC", **kwargs)
+            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="SHORT", type=type,quantity=quantity, timeInForce="GTX", **kwargs)
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
         return response
@@ -38,7 +38,7 @@ class Strategy(object):
             response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type,quantity=quantity, **kwargs)
             response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
         else:
-            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type, quantity=quantity,timeInForce="GTC",**kwargs)
+            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type, quantity=quantity,timeInForce="GTX",**kwargs)
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
         return response
@@ -48,7 +48,7 @@ class Strategy(object):
             response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="LONG", type=type,quantity=quantity, **kwargs)
             response["avgPrice"]=self.futures.query_order(symbol=symbol,orderId=response["orderId"])["avgPrice"]
         else:
-            response=self.futures.new_order(symbol=symbol,side="BUY",positionSide="LONG",type=type,quantity=quantity,timeInForce="GTC",**kwargs)
+            response=self.futures.new_order(symbol=symbol,side="BUY",positionSide="LONG",type=type,quantity=quantity,timeInForce="GTX",**kwargs)
         #print(json.dumps(response,indent=2))
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
@@ -60,7 +60,7 @@ class Strategy(object):
             #print(json.dumps(response,indent=2))
             response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
         else:
-            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="LONG", type=type,quantity=quantity, timeInForce="GTC", **kwargs)
+            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="LONG", type=type,quantity=quantity, timeInForce="GTX", **kwargs)
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
         return response
@@ -238,9 +238,9 @@ class Strategy(object):
         data["positions"]=positions
         return data
 
-    def __load_trades_csv(self,file_path,symbol):
+    def __load_trades_csv(self,file_path,symbol,minqty):
         i=1
-        qty=2
+        qty=minqty
         flag=False
         last_trade=self.database.get_last_trade(symbol=symbol)
         #print(last_trade)
@@ -264,12 +264,12 @@ class Strategy(object):
                 self.database.batch_insert_trade(symbol=symbol, trades=items)
                 print(file_path,"end",i,"\n")
 
-    def load_files_trades(self,symbol,files_path="E:\\data"):
+    def load_files_trades(self,symbol,files_path="E:\\data",minqty=2):
         files = os.listdir(files_path)
         for file in files:
             file_path=files_path+"\\{}".format(file)
             print("load file:",file_path)
-            self.__load_trades_csv(file_path=file_path,symbol=symbol)
+            self.__load_trades_csv(file_path=file_path,symbol=symbol,minqty=minqty)
 
     def write_datebase_to_csv(self,symbol,minqty,limit,out_file="E:\\csv"):
         sel = self.database.select_trade_to_csv(symbol=symbol, minqty=minqty, limit=limit)
@@ -305,3 +305,7 @@ class Strategy(object):
 
     def plot_Depth(self,depths,symbol):
         Plot.plot_Depth(depths=depths,symbol=symbol)
+
+    def get_order_history(self,symbol,orderId,**kwargs):
+        response=self.futures.query_order(symbol=symbol,orderId=orderId,**kwargs)
+        return response

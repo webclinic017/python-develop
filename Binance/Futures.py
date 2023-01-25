@@ -386,3 +386,16 @@ class Futures(API):
             **kwargs
         }
         return self.sign_request("GET", url_path, params)
+
+    ##
+    def new_listen_key(self):
+        url_path = "/fapi/v1/listenKey"
+        return self.send_request("POST", url_path)
+
+    def renew_listen_key(self, listenKey: str):
+        url_path = "/fapi/v1/listenKey"
+        return self.send_request("PUT", url_path, {"listenKey": listenKey})
+
+    def close_listen_key(self, listenKey: str):
+        url_path = "/fapi/v1/listenKey"
+        return self.send_request("DELETE", url_path, {"listenKey": listenKey})
