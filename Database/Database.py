@@ -196,6 +196,13 @@ class Database(object):
         Time = datetime.datetime.utcfromtimestamp(timestamp // 1000 + 8 * 60 * 60)
         return Time
 
+    def group_qty_sum(self,symbol):
+        sql="select qty,isBuyerMaker,count(*) from {}_trade group by qty,isBuyerMaker order by qty;".format(symbol)
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        return results
+
+
 
 
 

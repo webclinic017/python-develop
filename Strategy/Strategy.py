@@ -309,3 +309,23 @@ class Strategy(object):
     def get_order_history(self,symbol,orderId,**kwargs):
         response=self.futures.query_order(symbol=symbol,orderId=orderId,**kwargs)
         return response
+
+    def group_qty_sum(self, symbol):
+        results=self.database.group_qty_sum(symbol)
+        return results
+
+    def plot_trades(self,symbol):
+        results = self.group_qty_sum(symbol=symbol)
+        dicts = {}
+        for i in results:
+            try:
+                dicts[str(i[0])] = dicts[str(i[0])] + (i[2] if i[1] == '1' else -i[2])
+            except:
+                dicts[str(i[0])] = (i[2] if i[2] == 1 else -i[2])
+        qtys = []
+        nums = []
+        for k, y in dicts.items():
+            qtys.append(float(k))
+            nums.append(y * float(k))
+        plt.scatter(qtys, nums)
+        plt.show()
