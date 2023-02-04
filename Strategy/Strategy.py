@@ -155,6 +155,41 @@ class Strategy(object):
     def update_klines(self,symbol):
         self.__update_klines_5m(symbol=symbol,interval="5m")
 
+    def update_load_klines(self,symbol):
+        self.__update_load_klines_5m(symbol=symbol,interval="5m")
+
+    def __update_load_klines_5m(self,symbol, interval,files_path="C:\\data"):
+        string="open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore\n"
+        files = os.listdir(files_path)
+        for file in files:
+            file_path = files_path + "\\{}".format(file)
+            print("load file:", file_path)
+            line=""
+            with open(file_path,"r+") as f:
+                line=f.readline()
+                f.seek(0,0)
+                content = f.read()
+                if(line != string):
+                    f.seek(0, 0)
+                    f.write(string+content)
+            self.__load_klines_csv(file_path=file_path, symbol=symbol)
+
+    def __load_klines_csv(self,file_path,symbol):
+        last_kline = self.database.get_last_kline(symbol=symbol)
+        with open(file_path, "r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            klines=[]
+            for item in reader:
+                if(int(item["open_time"])>last_kline):
+                    kline=[]
+                    for i in item.values():
+                        kline.append(i)
+                    kline.pop()
+                    klines.append(kline)
+            if(len(klines)!=0):
+                self.database.insert_klines(symbol=symbol,interval="5m",klines=klines)
+
+
     def __update_klines_5m(self,symbol, interval, **kwargs):
         response = self.futures.exchange_info()
         symbols = response["symbols"]
@@ -264,7 +299,7 @@ class Strategy(object):
                 self.database.batch_insert_trade(symbol=symbol, trades=items)
                 print(file_path,"end",i,"\n")
 
-    def load_files_trades(self,symbol,files_path="E:\\data",minqty=2):
+    def load_files_trades(self,symbol,files_path="C:\\data",minqty=2):
         files = os.listdir(files_path)
         for file in files:
             file_path=files_path+"\\{}".format(file)

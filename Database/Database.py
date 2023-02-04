@@ -18,9 +18,15 @@ class Database(object):
         exist=self.exist_table(table_name)
         if(not exist):
             self.new_table_klines(symbol,interval)
-        for kline in klines:
-            insert_sql="insert into {} values('{}',{},{},{},{},{},{},{},{});".format(table_name,self.to_datetime(kline[0]),kline[0],kline[1],kline[2],kline[3],kline[4],kline[5],kline[6],kline[7])
-            self.cursor.execute(insert_sql)
+        insert_sql = "insert into {} values ".format(table_name)
+        length=len(klines)
+        for i in range(length-1):
+            kline=klines[i]
+            insert_sql+="('{}',{},{},{},{},{},{},{},{},{},{},{}),".format(self.to_datetime(kline[0]),kline[0],kline[1],kline[2],kline[3],kline[4],kline[5],kline[6],kline[7],kline[8],kline[9],kline[10])
+        #print(length)
+        kline = klines[length-1]
+        insert_sql += "('{}',{},{},{},{},{},{},{},{},{},{},{});".format(self.to_datetime(kline[0]), kline[0], kline[1],kline[2], kline[3], kline[4], kline[5],kline[6], kline[7], kline[8], kline[9],kline[10])
+        self.cursor.execute(insert_sql)
         print("Insert klines success")
 
     def insert_order(self,response):
@@ -108,7 +114,7 @@ class Database(object):
         return data
 
     def new_table_klines(self,symbol,interval):
-        sql="create table {}_KLINES_{}(time timestamp,Open_time bigint primary key,Open double,High double,Low double,Close double,Volume double,Close_time bigint,Quote_asset_volume double);".format(symbol,interval)
+        sql="create table {}_KLINES_{}(time timestamp,Open_time bigint primary key,Open double,High double,Low double,Close double,Volume double,Close_time bigint,Quote_asset_volume double,count int,taker_buy_volume double,taker_buy_quote_volume double);".format(symbol,interval)
         self.cursor.execute(sql)
 
     def new_table_orders(self):
@@ -175,6 +181,16 @@ class Database(object):
         results=self.cursor.fetchall()
         return list(results[0])
 
+    def get_last_kline(self,symbol,interval="5m"):
+        table_name = "{}_KLINES_{}".format(symbol, interval)
+        if(not self.exist_table(table_name=table_name)):
+            return 0
+        sql = "select max(Open_time) from {};".format(table_name)
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        print(results[0][0])
+        return results[0][0] if results[0][0]!=None else 0
+
     def get_last_trade(self,symbol):
         table_name = "{}_TRADE".format(symbol)
         if(not self.exist_table(table_name=table_name)):
@@ -193,6 +209,7 @@ class Database(object):
         return results[0][0]
 
     def to_datetime(self,timestamp)->(int):
+        timestamp=int(timestamp)
         Time = datetime.datetime.utcfromtimestamp(timestamp // 1000 + 8 * 60 * 60)
         return Time
 
