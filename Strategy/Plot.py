@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 def plot_K(klines,symbol="TEST"):
     n=len(klines)
-    fields=fields="Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume"
+    fields="Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume"
     coin_data=pd.DataFrame(klines,columns={"Open_time":0,"Open":1,"High":2,"Low":3,
                                            "Close":4,"Volume":5,"Close_time":6,"Quote_asset_volume":7})
     show_data=coin_data.loc[:,["Open_time","Open","High","Low","Close","Volume"]]
