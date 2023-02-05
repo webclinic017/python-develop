@@ -351,6 +351,7 @@ class Strategy(object):
 
     def plot_trades(self,symbol):
         results = self.group_qty_sum(symbol=symbol)
+        #print(results)
         dicts = {}
         for i in results:
             try:
@@ -378,3 +379,15 @@ class Strategy(object):
         show_data["Open_time"] = pd.to_datetime(show_data["Open_time"])
         show_data = show_data.set_index(["Open_time"], drop=True)
         return show_data
+
+    def get_prefers(self):
+        symbols=["BTCUSDT","ETHUSDT","AVAXUSDT","1000SHIBUSDT","ATOMUSDT",
+                 "LTCUSDT","MANAUSDT","SANDUSDT","NEARUSDT","DOTUSDT",
+                 "FTMUSDT","GALAUSDT"]
+        return symbols
+
+    def update_all_symbols_klines(self):
+        symbols = self.get_prefers()
+        for symbol in symbols:
+            self.update_klines(symbol=symbol)
+        print("Update all klines done")

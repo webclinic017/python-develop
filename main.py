@@ -10,5 +10,5 @@ secret_key="zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
 symbol="ETHUSDTTEST"
 strategy=Strategy(key=api_key,secret=secret_key)
 
-response=strategy.balance()
-print(json.dumps(response,indent=2))
+
+trades=strategy.plot_trades(symbol=symbol)
