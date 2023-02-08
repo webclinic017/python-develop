@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as dates
 import datetime
 import pandas as pd
+import numpy as np
+import mplfinance as mpf
 
 class Strategy(object):
     def __init__(self,key=None,secret=None,**kwargs):
@@ -69,8 +71,28 @@ class Strategy(object):
         response=self.futures.cancel_order(symbol=symbol,orderId=orderId,origClientOrderId=origClientOrderId,**kwargs)
         return response
 
-    def plot_K(self,klines, symbol="TEST"):
-        Plot.plot_K(klines=klines,symbol=symbol)
+    def __get_buy_sell(self,starttime,interval,trades,count):
+        max_qty=0
+        for trade in trades:
+            max_qty=(max_qty if max_qty>abs(trade[2]) else abs(trade[2]))
+        addplot=[]
+        for trade in trades:
+            buy_sell=[np.nan for i in range(count)]
+            if(trade[2]>0):
+                buy_sell[(trade[0] - starttime) // interval] = trade[1]
+                addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='^', color='g'))
+            else:
+                buy_sell[(trade[0] - starttime) // interval] = trade[1]
+                addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='v', color='r'))
+        return addplot
+
+
+    def plot_K(self,klines, symbol="TEST",trades=None):
+        interval=klines[1][0]-klines[0][0]
+        count=len(klines)
+        starttime=klines[0][0]
+        addplot=self.__get_buy_sell(starttime=starttime,interval=interval,trades=trades,count=count)
+        Plot.plot_K(klines=klines,symbol=symbol,addplot=addplot)
 
     def plot_Trades_Scatter(self,symbol,minqty=20, limit=200, desc=True):
         trades = self.database.select_trade(symbol=symbol, minqty=minqty, limit=limit, desc=desc)
@@ -299,7 +321,7 @@ class Strategy(object):
                 self.database.batch_insert_trade(symbol=symbol, trades=items)
                 print(file_path,"end",i,"\n")
 
-    def load_files_trades(self,symbol,files_path="C:\\data",minqty=2):
+    def load_files_trades(self,symbol,files_path="C:\\data",minqty=0):
         files = os.listdir(files_path)
         for file in files:
             file_path=files_path+"\\{}".format(file)
@@ -391,3 +413,7 @@ class Strategy(object):
         for symbol in symbols:
             self.update_klines(symbol=symbol)
         print("Update all klines done")
+
+    def get_tardes_limit(self,symbol,starttime,count):
+        trades=self.database.get_tardes_limit(symbol=symbol,starttime=starttime,count=count)
+        return trades

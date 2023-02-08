@@ -1,6 +1,7 @@
 import pymysql
 import datetime
 import time
+from operator import itemgetter
 
 class Database(object):
     def __init__(self,HOST="localhost",USER="root",PASSWORD="123456",database="data",charset="utf8",autocommit=True):
@@ -163,6 +164,21 @@ class Database(object):
         for i in data:
             trades.append(list(i))
         return trades
+
+    def get_tardes_limit(self,symbol,starttime,count):
+        symbol="ETHUSDTTEST"
+        table_name = "{}_TRADE".format(symbol)
+        sql = "select ttime,price,qty,isBuyerMaker from {} where ttime>{} order by qty desc limit {}".format(table_name, starttime,count)
+        self.cursor.execute(sql)
+        datas = self.cursor.fetchall()
+        trades=[]
+        for data in datas:
+            trade=[]
+            trade.append(data[0])
+            trade.append(data[1])
+            trade.append(data[2] if data[3]=='1' else -data[2])
+            trades.append(trade)
+        return sorted(trades,key=itemgetter(0))
 
     def select_trade_to_csv(self,symbol,minqty=100,limit=10000):
         table_name = "{}_TRADE".format(symbol)

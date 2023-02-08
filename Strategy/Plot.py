@@ -4,7 +4,7 @@ import datetime
 import time
 import matplotlib.pyplot as plt
 
-def plot_K(klines,symbol="TEST"):
+def plot_K(klines,symbol="TEST",trades=None,addplot=None):
     n=len(klines)
     fields="Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume"
     coin_data=pd.DataFrame(klines,columns={"Open_time":0,"Open":1,"High":2,"Low":3,
@@ -15,8 +15,7 @@ def plot_K(klines,symbol="TEST"):
         show_data.loc[i,"Open_time"]=datetime.datetime.utcfromtimestamp(temp_data[i]//1000+8*60*60)    ### UTC时间加8小时
     show_data["Open_time"]=pd.to_datetime(show_data["Open_time"])
     show_data=show_data.set_index(["Open_time"],drop=True)
-    #print(show_data)
-    mpf.plot(show_data,type="candle",style="yahoo",volume=True,title=symbol+"-Perpetual")
+    mpf.plot(show_data,type="candle",style="yahoo",volume=True,title=symbol+"-Perpetual",addplot=addplot)
 
 def plot_Depth(depths,symbol="TEST"):
     bid_prices=[]
