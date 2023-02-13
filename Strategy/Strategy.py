@@ -72,6 +72,8 @@ class Strategy(object):
         return response
 
     def __get_buy_sell(self,starttime,interval,trades,count):
+        if(trades==None):
+            return None
         max_qty=0
         for trade in trades:
             max_qty=(max_qty if max_qty>abs(trade[2]) else abs(trade[2]))
@@ -79,11 +81,17 @@ class Strategy(object):
         for trade in trades:
             buy_sell=[np.nan for i in range(count)]
             if(trade[2]>0):
-                buy_sell[(trade[0] - starttime) // interval] = trade[1]
-                addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='^', color='g'))
+                try:
+                    buy_sell[(trade[0] - starttime) // interval] = trade[1]
+                    addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='^', color='g'))
+                except:
+                    pass
             else:
-                buy_sell[(trade[0] - starttime) // interval] = trade[1]
-                addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='v', color='r'))
+                try:
+                    buy_sell[(trade[0] - starttime) // interval] = trade[1]
+                    addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='v', color='r'))
+                except:
+                    pass
         return addplot
 
 
@@ -129,10 +137,10 @@ class Strategy(object):
         plt.show()
 
     def select_klines(self,symbol,interval,limit,startTimestamp=None):
-        if(interval=="5m"):
+        if(interval=="1m"):
             return self.database.select_klines(symbol,interval,limit,startTimestamp=startTimestamp)
-        count=self.__count__klines(interval=interval)
-        klines=self.database.select_klines(symbol=symbol,interval="5m",limit=limit*count,startTimestamp=startTimestamp)
+        count=self.count__klines(interval=interval)
+        klines=self.database.select_klines(symbol=symbol,interval="1m",limit=limit*count,startTimestamp=startTimestamp)
         start_k=0
         for kline in klines:
             if((kline[0]//1000)%(24*60*60)==0):
@@ -149,38 +157,40 @@ class Strategy(object):
                 temp[2]=temp[2] if temp[2]>klines[j][2] else klines[j][2]
                 temp[3] = temp[3] if temp[3] < klines[j][3] else klines[j][3]
                 temp[4]=klines[j][4]
-            temp[6]=temp[0]+count*(5*60*1000)-1
+            temp[6]=temp[0]+count*(60*1000)-1
             return_klines.append(temp)
         return return_klines
 
 
-    def __count__klines(self,interval):
+    def count__klines(self,interval):
+        if(interval=="5m"):
+            return 5
         if(interval=="15m"):
-            return 3
+            return 15
         elif(interval=="30m"):
-            return 6
+            return 30
         elif (interval == "1h"):
-            return 12
+            return 60
         elif (interval == "2h"):
-            return 24
+            return 120
         elif (interval == "4h"):
-            return 48
+            return 240
         elif (interval == "8h"):
-            return 96
+            return 480
         elif (interval == "12h"):
-            return 144
+            return 720
         elif (interval == "1d"):
-            return 288
+            return 1440
         else:
             return 1
 
     def update_klines(self,symbol):
-        self.__update_klines_5m(symbol=symbol,interval="5m")
+        self.__update_klines(symbol=symbol,interval="1m")
 
-    def update_load_klines(self,symbol):
-        self.__update_load_klines_5m(symbol=symbol,interval="5m")
+    def update_load_klines(self,symbol,interval="1m"):
+        self.__update_load_klines(symbol=symbol,interval=interval)
 
-    def __update_load_klines_5m(self,symbol, interval,files_path="C:\\data"):
+    def __update_load_klines(self,symbol, interval,files_path="C:\\data"):
         string="open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore\n"
         files = os.listdir(files_path)
         for file in files:
@@ -194,10 +204,10 @@ class Strategy(object):
                 if(line != string):
                     f.seek(0, 0)
                     f.write(string+content)
-            self.__load_klines_csv(file_path=file_path, symbol=symbol)
+            self.__load_klines_csv(file_path=file_path, symbol=symbol,interval=interval)
 
-    def __load_klines_csv(self,file_path,symbol):
-        last_kline = self.database.get_last_kline(symbol=symbol)
+    def __load_klines_csv(self,file_path,symbol,interval="1m"):
+        last_kline = self.database.get_last_kline(symbol=symbol,interval=interval)
         with open(file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             klines=[]
@@ -208,11 +218,14 @@ class Strategy(object):
                         kline.append(i)
                     kline.pop()
                     klines.append(kline)
+                    if(len(klines)%10000==0):
+                        self.database.insert_klines(symbol=symbol, interval=interval, klines=klines)
+                        klines=[]
             if(len(klines)!=0):
-                self.database.insert_klines(symbol=symbol,interval="5m",klines=klines)
+                self.database.insert_klines(symbol=symbol,interval=interval,klines=klines)
 
 
-    def __update_klines_5m(self,symbol, interval, **kwargs):
+    def __update_klines(self,symbol, interval, **kwargs):
         response = self.futures.exchange_info()
         symbols = response["symbols"]
         onboardDate = 1
@@ -414,6 +427,6 @@ class Strategy(object):
             self.update_klines(symbol=symbol)
         print("Update all klines done")
 
-    def get_tardes_limit(self,symbol,starttime,count):
-        trades=self.database.get_tardes_limit(symbol=symbol,starttime=starttime,count=count)
+    def get_tardes_limit(self,symbol,starttime,endtime,count):
+        trades=self.database.get_tardes_limit(symbol=symbol,starttime=starttime,endtime=endtime,count=count)
         return trades

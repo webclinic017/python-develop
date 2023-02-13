@@ -172,10 +172,11 @@ class Database(object):
             trades.append(list(i))
         return trades
 
-    def get_tardes_limit(self,symbol,starttime,count):
+    def get_tardes_limit(self,symbol,starttime,endtime,count):
         #symbol="ETHUSDTTEST"
         table_name = "{}_TRADE".format(symbol)
-        sql = "select ttime,price,qty,isBuyerMaker from {} where ttime>{} order by qty desc limit {}".format(table_name, starttime,count)
+        print(starttime,endtime)
+        sql = "select ttime,price,qty,isBuyerMaker from {} where ttime>={} and ttime<{} order by qty desc limit {}".format(table_name, starttime,endtime,count)
         self.cursor.execute(sql)
         datas = self.cursor.fetchall()
         trades=[]
@@ -204,7 +205,7 @@ class Database(object):
         results=self.cursor.fetchall()
         return list(results[0])
 
-    def get_last_kline(self,symbol,interval="5m"):
+    def get_last_kline(self,symbol,interval="1m"):
         table_name = "{}_KLINES_{}".format(symbol, interval)
         if(not self.exist_table(table_name=table_name)):
             return 0

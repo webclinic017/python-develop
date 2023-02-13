@@ -15,7 +15,11 @@ def plot_K(klines,symbol="TEST",trades=None,addplot=None):
         show_data.loc[i,"Open_time"]=datetime.datetime.utcfromtimestamp(temp_data[i]//1000+8*60*60)    ### UTC时间加8小时
     show_data["Open_time"]=pd.to_datetime(show_data["Open_time"])
     show_data=show_data.set_index(["Open_time"],drop=True)
-    mpf.plot(show_data,type="candle",style="yahoo",volume=True,title=symbol+"-Perpetual",addplot=addplot)
+    #print(show_data)
+    if(addplot==None):
+        mpf.plot(show_data, type="candle", style="yahoo", volume=True, title=symbol + "-Perpetual")
+    else:
+        mpf.plot(show_data,type="candle",style="yahoo",volume=True,title=symbol+"-Perpetual",addplot=addplot)
 
 def plot_Depth(depths,symbol="TEST"):
     bid_prices=[]
