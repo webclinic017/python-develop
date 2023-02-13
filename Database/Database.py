@@ -137,11 +137,18 @@ class Database(object):
         sql="delete from {} where Open_time={}".format(table_name,timestamp)
         self.cursor.execute(sql)
 
-    def select_klines(self,symbol,interval,limit):
+    def select_klines(self,symbol,interval,limit,startTimestamp=None):
         table_name = "{}_KLINES_{}".format(symbol, interval)
-        sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume from {} order by Open_time desc limit {}".format(table_name,limit)
+        if(startTimestamp!=None):
+            print("startTime")
+            sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume from {} where Open_time>={} order by Open_time limit {}".format(table_name,startTimestamp,limit)
+        else:
+            sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume from {} order by Open_time desc limit {}".format(table_name, limit)
         self.cursor.execute(sql)
-        data=reversed(self.cursor.fetchall())
+        if(startTimestamp!=None):
+            data = self.cursor.fetchall()
+        else:
+            data=reversed(self.cursor.fetchall())
         klines=[]
         for i in data:
             klines.append(list(i))
@@ -166,7 +173,7 @@ class Database(object):
         return trades
 
     def get_tardes_limit(self,symbol,starttime,count):
-        symbol="ETHUSDTTEST"
+        #symbol="ETHUSDTTEST"
         table_name = "{}_TRADE".format(symbol)
         sql = "select ttime,price,qty,isBuyerMaker from {} where ttime>{} order by qty desc limit {}".format(table_name, starttime,count)
         self.cursor.execute(sql)

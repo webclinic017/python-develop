@@ -128,11 +128,11 @@ class Strategy(object):
         plt.plot_date(times, qty)
         plt.show()
 
-    def select_klines(self,symbol,interval,limit):
+    def select_klines(self,symbol,interval,limit,startTimestamp=None):
         if(interval=="5m"):
-            return self.database.select_klines(symbol,interval,limit)
+            return self.database.select_klines(symbol,interval,limit,startTimestamp=startTimestamp)
         count=self.__count__klines(interval=interval)
-        klines=self.database.select_klines(symbol=symbol,interval="5m",limit=limit*count)
+        klines=self.database.select_klines(symbol=symbol,interval="5m",limit=limit*count,startTimestamp=startTimestamp)
         start_k=0
         for kline in klines:
             if((kline[0]//1000)%(24*60*60)==0):
