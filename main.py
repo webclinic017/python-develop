@@ -34,13 +34,13 @@ def select_klines():
 def main():
     api_key = "c9UnWFmWxaY9gSl0eZ3H9a3EeNNutBmy6F9JGb7HKalGdqKUA5xViSrCbqhe144v"
     secret_key = "zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
-    symbol = "BTCUSDT"
-    interval="4h"
+    symbol = "ETHUSDT"
+    interval="15m"
     strategy = Strategy(key=api_key, secret=secret_key)
     #strategy.update_all_symbols_klines()
     #strategy.update_klines(symbol=symbol)
-    limit=300
-    klines=strategy.select_klines(symbol=symbol,interval=interval,limit=limit,startTimestamp=1670630400000)
+    limit=13*24*4
+    klines=strategy.select_klines(symbol=symbol,interval=interval,limit=limit,startTimestamp=1675209600000)
     #strategy.plot_K(klines=klines,symbol=symbol)
     #print(klines)
     starttime=klines[0][0]
