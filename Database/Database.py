@@ -243,6 +243,12 @@ class Database(object):
         results = self.cursor.fetchall()
         return results
 
+    def group_price_sum(self,symbol):
+        sql="select price,sum(qty),isBuyerMaker from {}_trade group by price,isBuyerMaker order by price desc;".format(symbol)
+        self.cursor.execute(sql)
+        results = self.cursor.fetchall()
+        return results
+
 
 
 

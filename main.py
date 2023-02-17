@@ -48,11 +48,21 @@ def main():
     trades=strategy.get_tardes_limit(symbol=symbol,starttime=starttime,endtime=endtime,count=1000)
     strategy.plot_K(klines=klines, symbol=symbol,trades=trades)
 
+def main1():
+    api_key = "pNn32OUxkScMve5fhJugP9b65nPhfcImnv0FuiVpxJ0IXxnrLxcRh2N0cE5kY9lM"
+    secret_key = "yvtaF4cBNL8I3INbYrNvCGFlQPWrxNsKirveyVJeO7hdRRej5jFwoWOtdeXrveQW"
+    symbol = "ETHUSDTTEST"
+    interval = "15m"
+    strategy = Strategy(key=api_key, secret=secret_key)
+
+    strategy.plot_tarde_price(symbol=symbol)
+
 if __name__=="__main__":
     start_time=time.time()
-    main()
+    #main()
     #load()
     #load_klines()
     #select_klines()
+    main1()
     end_time=time.time()
     print((int(end_time-start_time))//60,"min",(int(end_time-start_time))%60,"s")

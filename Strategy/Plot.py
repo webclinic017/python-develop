@@ -20,6 +20,22 @@ def plot_K(klines,symbol="TEST",trades=None,addplot=None):
     else:
         mpf.plot(show_data,type="candle",style="yahoo",volume=True,title=symbol+"-Perpetual",addplot=addplot)
 
+def plot_trade_price(priceGroup):
+    pricesBuy = []
+    pricesSell = []
+    buys = []
+    sells = []
+    for price in priceGroup:
+        if (price[2] == '1'):
+            pricesBuy.append(price[0])
+            buys.append(price[1])
+        else:
+            pricesSell.append(price[0])
+            sells.append(-price[1])
+    plt.barh(pricesBuy, buys, color="green")
+    plt.barh(pricesSell, sells, color="red")
+    plt.show()
+
 def plot_Depth(depths,symbol="TEST"):
     bid_prices=[]
     bid_vols=[]

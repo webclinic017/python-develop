@@ -384,6 +384,10 @@ class Strategy(object):
         results=self.database.group_qty_sum(symbol)
         return results
 
+    def group_price_sum(self, symbol):
+        results=self.database.group_price_sum(symbol)
+        return results
+
     def plot_trades(self,symbol):
         results = self.group_qty_sum(symbol=symbol)
         #print(results)
@@ -430,3 +434,8 @@ class Strategy(object):
     def get_tardes_limit(self,symbol,starttime,endtime,count):
         trades=self.database.get_tardes_limit(symbol=symbol,starttime=starttime,endtime=endtime,count=count)
         return trades
+
+    def plot_tarde_price(self,symbol="ETHUSDTTEST"):
+        priceGroup = self.database.group_price_sum(symbol=symbol)
+        Plot.plot_trade_price(priceGroup=priceGroup)
+
