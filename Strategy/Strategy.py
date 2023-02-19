@@ -100,7 +100,35 @@ class Strategy(object):
         count=len(klines)
         starttime=klines[0][0]
         addplot=self.__get_buy_sell(starttime=starttime,interval=interval,trades=trades,count=count)
-        Plot.plot_K(klines=klines,symbol=symbol,addplot=addplot)
+        coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
+                                                  "Close": 4, "Volume": 5, "Close_time": 6,
+                                                  "Quote_asset_volume": 7, "taker_buy_volume": 8})
+        show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
+        Plot.plot_K(klines=show_data,symbol=symbol,addplot=addplot)
+
+    def __get_klines_resisitence(self,price,taker):
+        resistence=[]
+        for i in range(len(price)):
+            resistence.append(abs(taker[i])/price[i])
+        return resistence
+
+    def __get_taker(self,coin_data):
+        vol = coin_data["Volume"]
+        taker_buy = coin_data["taker_buy_volume"]
+        taker_sell = vol - taker_buy
+        taker = (taker_buy - taker_sell)
+        for i in range(1,len(taker)):
+            taker[i]+=taker[i-1]
+        return taker
+
+    def plot_K_Resistence(self,klines, symbol="TEST",save=False):
+        coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
+                                                  "Close": 4, "Volume": 5, "Close_time": 6,
+                                                  "Quote_asset_volume": 7, "taker_buy_volume": 8})
+        show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
+        taker = self.__get_taker(coin_data=coin_data)
+        #resistence = self.__get_klines_resisitence(price=coin_data["Close"]-coin_data["Open"],taker=taker)
+        Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=taker,save=save)
 
     def plot_Trades_Scatter(self,symbol,minqty=20, limit=200, desc=True):
         trades = self.database.select_trade(symbol=symbol, minqty=minqty, limit=limit, desc=desc)
@@ -152,12 +180,13 @@ class Strategy(object):
         for i in range(start_k,len(klines),count):
             temp=klines[i]
             for j in range(i+1,i+count if i+count<len(klines) else len(klines)):
-                temp[5]+=klines[j][5]
-                temp[7]+=klines[j][7]
-                temp[2]=temp[2] if temp[2]>klines[j][2] else klines[j][2]
+                temp[5] += klines[j][5]
+                temp[7] += klines[j][7]
+                temp[8] += klines[j][8]
+                temp[2] = temp[2] if temp[2] > klines[j][2] else klines[j][2]
                 temp[3] = temp[3] if temp[3] < klines[j][3] else klines[j][3]
-                temp[4]=klines[j][4]
-            temp[6]=temp[0]+count*(60*1000)-1
+                temp[4] = klines[j][4]
+            temp[6] = temp[0] + count * (60 * 1000) - 1
             return_klines.append(temp)
         return return_klines
 
@@ -422,7 +451,9 @@ class Strategy(object):
     def get_prefers(self):
         symbols=["BTCUSDT","ETHUSDT","AVAXUSDT","1000SHIBUSDT","ATOMUSDT",
                  "LTCUSDT","MANAUSDT","SANDUSDT","NEARUSDT","DOTUSDT",
-                 "FTMUSDT","GALAUSDT"]
+                 "FTMUSDT","GALAUSDT","MATICUSDT","FILUSDT","LINKUSDT",
+                 "APTUSDT","ETCUSDT"]
+        #,"DYDXUSDT","GTCUSDT","APEUSDT","ARUSDT","CHZUSDT","LRCUSDT"
         return symbols
 
     def update_all_symbols_klines(self):

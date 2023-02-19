@@ -140,10 +140,10 @@ class Database(object):
     def select_klines(self,symbol,interval,limit,startTimestamp=None):
         table_name = "{}_KLINES_{}".format(symbol, interval)
         if(startTimestamp!=None):
-            print("startTime")
-            sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume from {} where Open_time>={} order by Open_time limit {}".format(table_name,startTimestamp,limit)
+            print("startTime:",startTimestamp)
+            sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume,taker_buy_volume from {} where Open_time>={} order by Open_time limit {}".format(table_name,startTimestamp,limit)
         else:
-            sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume from {} order by Open_time desc limit {}".format(table_name, limit)
+            sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume,taker_buy_volume from {} order by Open_time desc limit {}".format(table_name, limit)
         self.cursor.execute(sql)
         if(startTimestamp!=None):
             data = self.cursor.fetchall()
