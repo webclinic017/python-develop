@@ -33,6 +33,7 @@ def plot_K_Resistance(klines,symbol="TEST",resistence=None,save=False):
 
     ax2 = fig.add_axes([0.06, 0.25, 0.88, 0.2], sharex=ax1)
     ax3 = fig.add_axes([0.06, 0.05, 0.88, 0.2], sharex=ax1)
+    #ax3 = ax1.twinx()
 
     ax1.set_ylabel('price')
     #ax2.set_ylabel('volume')
@@ -49,6 +50,7 @@ def plot_K_Resistance(klines,symbol="TEST",resistence=None,save=False):
         print("Save png success")
     else:
         mpf.plot(show_data, ax=ax1, volume=ax2, addplot=addplot, type="candle", style="yahoo")
+        plt.title(symbol,loc="left")
         plt.show()
 
 def plot_trade_price(priceGroup):

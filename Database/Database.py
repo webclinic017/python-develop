@@ -154,6 +154,16 @@ class Database(object):
             klines.append(list(i))
         return klines
 
+    def select_all_klines(self,symbol,interval,limit):
+        table_name = "{}_KLINES_{}".format(symbol, interval)
+        sql = "select Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume,taker_buy_volume from {} order by Open_time desc limit {}".format(table_name, limit)
+        self.cursor.execute(sql)
+        data = reversed(self.cursor.fetchall())
+        klines = []
+        for i in data:
+            klines.append(list(i))
+        return klines
+
     def select_trade(self,symbol,minqty=300,desc=False,limit=100):
         if(desc==False):
             desc_f="ASC"

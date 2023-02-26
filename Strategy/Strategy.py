@@ -121,6 +121,36 @@ class Strategy(object):
             taker[i]+=taker[i-1]
         return taker
 
+    def __normalization(self,vols,prices):
+        volans=[]
+        priceans=[]
+        n=len(vols)
+        for i in range(n):
+            volans.append((vols[i] - min(vols)) / (max(vols) - min(vols)))
+            priceans.append((prices[i] - min(prices)) / (max(prices) - min(prices)))
+        ans=[]
+        for i in range(n):
+            ans.append(priceans[i]-volans[i])
+        return ans
+
+    def __get_price_vol(self,coin_data):
+        #price_vol=(coin_data["Close"]-coin_data["Open"])/coin_data["Volume"]
+        vols=[]
+        for i in range(len(coin_data["Open"])):
+            if(coin_data["Close"][i]>=coin_data["Open"][i]):
+                vols.append(coin_data["Volume"][i])
+            else:
+                vols.append(-coin_data["Volume"][i])
+        prices=[]
+        prices.append(coin_data["Close"][0]-coin_data["Open"][0])
+        for i in range(1,len(coin_data["Open"])):
+            prices.append(coin_data["Close"][i]-coin_data["Close"][i-1])
+        for i in range(1,len(vols)):
+            vols[i] += (vols[i - 1])
+            prices[i] += (prices[i - 1])
+        ans=self.__normalization(vols=vols,prices=prices)
+        return ans
+
     def plot_K_Resistence(self,klines, symbol="TEST",save=False):
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
                                                   "Close": 4, "Volume": 5, "Close_time": 6,
@@ -128,7 +158,47 @@ class Strategy(object):
         show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
         taker = self.__get_taker(coin_data=coin_data)
         #resistence = self.__get_klines_resisitence(price=coin_data["Close"]-coin_data["Open"],taker=taker)
-        Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=taker,save=save)
+        price_vol=self.__get_price_vol(coin_data=coin_data)
+        Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=price_vol,save=save)
+
+    def klines_aggregate(self,klines,vol_price,interval="5m"):
+        count = self.count__klines(interval=interval)
+        start_k = 0
+        for kline in klines:
+            if ((kline[0] // 1000) % (24 * 60 * 60) == 0):
+                start_k = klines.index(kline)
+                break
+        start_k = start_k % count
+        return_klines = []
+        return_vol_price = []
+        for i in range(start_k, len(klines), count):
+            temp = klines[i]
+            temp_vol_price = vol_price[i]
+            for j in range(i + 1, i + count if i + count < len(klines) else len(klines)):
+                temp_vol_price += vol_price[j]
+                temp[5] += klines[j][5]
+                temp[7] += klines[j][7]
+                temp[8] += klines[j][8]
+                temp[2] = temp[2] if temp[2] > klines[j][2] else klines[j][2]
+                temp[3] = temp[3] if temp[3] < klines[j][3] else klines[j][3]
+                temp[4] = klines[j][4]
+            temp[6] = temp[0] + count * (60 * 1000) - 1
+            return_klines.append(temp)
+            return_vol_price.append(temp_vol_price)
+        return return_klines,return_vol_price
+
+    def plot_K_Vol_Price(self,klines, symbol="TEST",save=False):
+        coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
+                                                  "Close": 4, "Volume": 5, "Close_time": 6,
+                                                  "Quote_asset_volume": 7, "taker_buy_volume": 8})
+        #show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
+        vol_price=self.__get_price_vol(coin_data=coin_data)
+        return_klines,return_vol_Price=self.klines_aggregate(klines=klines,vol_price=vol_price,interval="30m")
+        coin_data = pd.DataFrame(return_klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
+                                                  "Close": 4, "Volume": 5, "Close_time": 6,
+                                                  "Quote_asset_volume": 7, "taker_buy_volume": 8})
+        show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
+        Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=return_vol_Price,save=save)
 
     def plot_Trades_Scatter(self,symbol,minqty=20, limit=200, desc=True):
         trades = self.database.select_trade(symbol=symbol, minqty=minqty, limit=limit, desc=desc)
