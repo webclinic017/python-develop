@@ -47,11 +47,13 @@ def plot_K_Resistance(klines,symbol="TEST",resistence=None,save=False):
             os.makedirs("C:\\klines\\{}".format(symbol))
             print("Create {} dirs".format(symbol))
         plt.savefig("C:\\klines\\{}\\{}.png".format(symbol,int(time.time())))
+        plt.close()
         print("Save png success")
     else:
         mpf.plot(show_data, ax=ax1, volume=ax2, addplot=addplot, type="candle", style="yahoo")
         plt.title(symbol,loc="left")
         plt.show()
+        plt.close()
 
 def plot_trade_price(priceGroup):
     pricesBuy = []

@@ -125,9 +125,13 @@ class Strategy(object):
         volans=[]
         priceans=[]
         n=len(vols)
+        minvols = min(vols)
+        maxvols = max(vols)
+        minprices = min(prices)
+        maxprices = max(prices)
         for i in range(n):
-            volans.append((vols[i] - min(vols)) / (max(vols) - min(vols)))
-            priceans.append((prices[i] - min(prices)) / (max(prices) - min(prices)))
+            volans.append((vols[i] - minvols) / (maxvols - minvols))
+            priceans.append((prices[i] - minprices) / (maxprices - minprices))
         ans=[]
         for i in range(n):
             ans.append(priceans[i]-volans[i])
@@ -151,14 +155,15 @@ class Strategy(object):
         ans=self.__normalization(vols=vols,prices=prices)
         return ans
 
-    def plot_K_Resistence(self,klines, symbol="TEST",save=False):
+    def plot_K_Resistence(self,klines, symbol="TEST",save=False,price_vol=None):
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
                                                   "Close": 4, "Volume": 5, "Close_time": 6,
                                                   "Quote_asset_volume": 7, "taker_buy_volume": 8})
         show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
-        taker = self.__get_taker(coin_data=coin_data)
+        #taker = self.__get_taker(coin_data=coin_data)
         #resistence = self.__get_klines_resisitence(price=coin_data["Close"]-coin_data["Open"],taker=taker)
-        price_vol=self.__get_price_vol(coin_data=coin_data)
+        if(price_vol==None):
+            price_vol=self.__get_price_vol(coin_data=coin_data)
         Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=price_vol,save=save)
 
     def klines_aggregate(self,klines,vol_price,interval="5m"):
@@ -186,6 +191,25 @@ class Strategy(object):
             return_klines.append(temp)
             return_vol_price.append(temp_vol_price)
         return return_klines,return_vol_price
+
+    #  ************  #
+    def select_klines_vol_price(self, symbol, interval, limit, startTimestamp=None):
+        klines = self.select_klines(symbol, interval, limit, startTimestamp=startTimestamp)
+        n = len(klines)
+        vols = []
+        prices = []
+
+        prices.append(klines[0][1])
+        if (klines[0][4] >= klines[0][1]):
+            vols.append(klines[0][5])
+        else:
+            vols.append(-klines[0][5])
+        for i in range(1,n):
+            vols.append((klines[i][5] if (klines[i][4] >= klines[i][1]) else -klines[i][5])+vols[-1])
+            prices.append(klines[i][4])
+        ans = self.__normalization(vols=vols, prices=prices)
+        end=time.time()
+        return klines,ans
 
     def plot_K_Vol_Price(self,klines, symbol="TEST",save=False):
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
@@ -262,6 +286,8 @@ class Strategy(object):
 
 
     def count__klines(self,interval):
+        if (interval == "3m"):
+            return 3
         if(interval=="5m"):
             return 5
         if(interval=="15m"):
@@ -325,17 +351,18 @@ class Strategy(object):
 
 
     def __update_klines(self,symbol, interval, **kwargs):
-        response = self.futures.exchange_info()
-        symbols = response["symbols"]
-        onboardDate = 1
-        for i in symbols:
-            if i["symbol"] == symbol:
-                onboardDate = i["onboardDate"]
-        startTime = onboardDate
         table_klines_name = "{}_KLINES_{}".format(symbol, interval)
         if (self.database.exist_table(table_name=table_klines_name)):
             startTime = self.database.get_maxOpenTime(symbol=symbol, interval=interval)
             self.database.delete_maxOpenTime(symbol=symbol, interval=interval, timestamp=startTime)
+        else:
+            response = self.futures.exchange_info()
+            symbols = response["symbols"]
+            onboardDate = 1
+            for i in symbols:
+                if i["symbol"] == symbol:
+                    onboardDate = i["onboardDate"]
+            startTime = onboardDate
         while (startTime < time.time() * 1000):
             response = self.futures.klines(symbol=symbol, interval=interval, startTime=startTime, limit=500)
             self.database.insert_klines(symbol=symbol, interval=interval, klines=response)

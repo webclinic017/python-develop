@@ -61,13 +61,42 @@ def update_symbols_klines():
     strategy = Strategy(key=api_key, secret=secret_key)
     symbols = strategy.get_prefers()
     for symbol in symbols:
-        #strategy.update_klines(symbol=symbol)
+        strategy.update_klines(symbol=symbol)
         print("Update {} success".format(symbol))
     limit = 1500
     interval = "15m"
     for symbol in symbols:
-        klines = strategy.select_klines(symbol=symbol,interval=interval,limit = limit,startTimestamp=1672531200000)
+        klines,vol_price = strategy.select_klines_vol_price(symbol=symbol,interval=interval,limit = limit,startTimestamp=None)
         strategy.plot_K_Resistence(klines=klines,symbol=symbol)
+
+def update_symbol_klines():
+    api_key = "pNn32OUxkScMve5fhJugP9b65nPhfcImnv0FuiVpxJ0IXxnrLxcRh2N0cE5kY9lM"
+    secret_key = "yvtaF4cBNL8I3INbYrNvCGFlQPWrxNsKirveyVJeO7hdRRej5jFwoWOtdeXrveQW"
+    strategy = Strategy(key=api_key, secret=secret_key)
+    symbol="ETHUSDT"
+    #strategy.update_klines(symbol=symbol)
+    print("Update {} success".format(symbol))
+    limit = 1500
+    interval = "5m"
+    history=19
+    intervaltime=limit*60*1000*strategy.count__klines(interval=interval)
+    startTimestamp=1673280000000
+    n1=history*limit
+    n2=history*limit+limit-1
+    while(True):
+        klines_temp,vol_price_temp = strategy.select_klines_vol_price(symbol=symbol,interval=interval,limit = limit*(1+history),
+                                                            startTimestamp=startTimestamp-history*intervaltime)
+        print(len(klines_temp))
+        klines=[]
+        vol_price=[]
+        for i in range(len(klines_temp)-limit,len(klines_temp)):
+            klines.append(klines_temp[i])
+            vol_price.append(vol_price_temp[i])
+        print("klines",len(klines),len(vol_price))
+        strategy.plot_K_Resistence(klines=klines,symbol=symbol,save=False,price_vol=vol_price)
+        startTimestamp+=intervaltime
+        if (len(klines_temp) <=(history+1)*limit):
+            break
 
 def plot_klines():
     api_key = "pNn32OUxkScMve5fhJugP9b65nPhfcImnv0FuiVpxJ0IXxnrLxcRh2N0cE5kY9lM"
@@ -87,7 +116,8 @@ if __name__=="__main__":
     #load_klines()
     #select_klines()
     #main1()
-    update_symbols_klines()
+    #update_symbols_klines()
+    update_symbol_klines()
     #plot_klines()
     end_time=time.time()
     print((int(end_time-start_time))//60,"min",(int(end_time-start_time))%60,"s")
