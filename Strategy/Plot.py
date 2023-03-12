@@ -55,6 +55,33 @@ def plot_K_Resistance(klines,symbol="TEST",resistence=None,save=False):
         plt.show()
         plt.close()
 
+def plot_Kline(klines,symbol="TEST",resistence=None):
+    n=len(klines)
+    show_data=klines
+    temp_data=show_data["Open_time"]
+    for i in range(n):
+        show_data.loc[i,"Open_time"]=datetime.datetime.utcfromtimestamp(temp_data[i]//1000+8*60*60)    ### UTC时间加8小时
+    show_data["Open_time"]=pd.to_datetime(show_data["Open_time"])
+    show_data=show_data.set_index(["Open_time"],drop=True)
+
+    fig = mpf.figure(figsize=(16, 9), facecolor=(0.82, 0.83, 0.85))
+
+    ax1 = fig.add_axes([0.06, 0.45, 0.88, 0.55])
+
+    ax2 = fig.add_axes([0.06, 0.25, 0.88, 0.2], sharex=ax1)
+    ax3 = fig.add_axes([0.06, 0.05, 0.88, 0.2], sharex=ax1)
+    #ax3 = ax1.twinx()
+
+    ax1.set_ylabel('price')
+    #ax2.set_ylabel('volume')
+    ax3.set_ylabel('taker')
+
+    addplot = mpf.make_addplot(resistence,ax=ax3)
+    mpf.plot(show_data, ax=ax1, volume=ax2, addplot=addplot, type="candle", style="yahoo")
+    plt.title(symbol, loc="left")
+    plt.show()
+    plt.close()
+
 def plot_trade_price(priceGroup):
     pricesBuy = []
     pricesSell = []

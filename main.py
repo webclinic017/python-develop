@@ -76,11 +76,11 @@ def update_symbol_klines():
     symbol="ETHUSDT"
     #strategy.update_klines(symbol=symbol)
     print("Update {} success".format(symbol))
-    limit = 1500
+    limit = 1000
     interval = "5m"
-    history=19
+    history=1
     intervaltime=limit*60*1000*strategy.count__klines(interval=interval)
-    startTimestamp=1673280000000
+    startTimestamp=1677585600000
     n1=history*limit
     n2=history*limit+limit-1
     while(True):
