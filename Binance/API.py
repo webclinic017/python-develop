@@ -65,4 +65,3 @@ class API(object):
 
     def _prepare_params(self, payload):
         return encoding_string(cleanNoneValue(payload))
-

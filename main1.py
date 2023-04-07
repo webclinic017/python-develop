@@ -30,11 +30,11 @@ def main1():
     secret_key = "zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
     symbol = "ETHUSDT"
     limit=1000
-    interval="5m"
+    interval="1h"
     startTimestamp = 1672704000000
     strategy = Strategy(key=api_key, secret=secret_key)
 
-    strategy.update_klines(symbol=symbol)
+    #strategy.update_klines(symbol=symbol)
     select_klines=strategy.select_klines(symbol=symbol,limit=limit,interval=interval,startTimestamp=None)
     klinesTemp = pd.DataFrame(select_klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
                                               "Close": 4, "Volume": 5, "Close_time": 6,
@@ -43,14 +43,25 @@ def main1():
     show_data = klines.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
     taker=2*klines["taker_buy_volume"]-klines["Volume"]
     takers=taker.cumsum()
+    per=taker/klines["Volume"]
     plot_Kline(klines=show_data,symbol=symbol,resistence=takers)
+    return klines
 
+def desc_num_feature(klines,feature_name,bins=4000,edgecolor='k',**kwargs):
+    fig,ax=plt.subplots(figsize=(8,4))
+    plt.grid(c='g')
+    plt.hist(klines[feature_name],bins=bins,edgecolor=edgecolor)
+    ax.set_title(feature_name,size=15)
+    plt.show()
 
 if __name__=="__main__":
+    pd.options.display.max_columns = None
     start_time=time.time()
 
-    #main()
-    main1()
+
+    klines=main1()
+    print(klines)
+
 
     end_time=time.time()
     print((int(end_time-start_time))//60,"min",(int(end_time-start_time))%60,"s")
