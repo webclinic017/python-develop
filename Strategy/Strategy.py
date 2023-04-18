@@ -549,7 +549,7 @@ class Strategy(object):
         symbols=["BTCUSDT","ETHUSDT","AVAXUSDT","1000SHIBUSDT","ATOMUSDT",
                  "LTCUSDT","MANAUSDT","SANDUSDT","NEARUSDT","DOTUSDT",
                  "FTMUSDT","GALAUSDT","MATICUSDT","FILUSDT","LINKUSDT",
-                 "APTUSDT","ETCUSDT"]
+                 "APTUSDT","ETCUSDT","SOLUSDT","ADAUSDT","XRPUSDT"]
         #,"DYDXUSDT","GTCUSDT","APEUSDT","ARUSDT","CHZUSDT","LRCUSDT"
         return symbols
 

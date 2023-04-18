@@ -55,7 +55,7 @@ def plot_K_Resistance(klines,symbol="TEST",resistence=None,save=False):
         plt.show()
         plt.close()
 
-def plot_Kline(klines,symbol="TEST",resistence=None):
+def plot_Kline(klines,symbol="TEST",resistence=None,save=False):
     n=len(klines)
     show_data=klines
     temp_data=show_data["Open_time"]
@@ -77,8 +77,21 @@ def plot_Kline(klines,symbol="TEST",resistence=None):
     ax3.set_ylabel('taker')
 
     addplot = mpf.make_addplot(resistence,ax=ax3)
+
+    if (save):
+        mpf.plot(show_data, ax=ax1, volume=ax2, addplot=addplot, type="candle", style="yahoo")
+        if (not os.path.exists("C:\\klines\\{}".format(symbol))):
+            os.makedirs("C:\\klines\\{}".format(symbol))
+            print("Create {} dirs".format(symbol))
+        plt.savefig("C:\\klines\\{}\\{}.png".format(symbol, symbol+str(int(time.time()))))
+        plt.title(symbol, loc="left")
+        plt.close()
+        print("Save png success")
+        return
+
     mpf.plot(show_data, ax=ax1, volume=ax2, addplot=addplot, type="candle", style="yahoo")
     plt.title(symbol, loc="left")
+    print("title:",symbol)
     plt.show()
     plt.close()
 

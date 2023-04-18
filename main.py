@@ -16,7 +16,7 @@ def load_klines():
     api_key = "c9UnWFmWxaY9gSl0eZ3H9a3EeNNutBmy6F9JGb7HKalGdqKUA5xViSrCbqhe144v"
     secret_key = "zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
     strategy = Strategy(key=api_key, secret=secret_key)
-    symbol="ETCUSDT"
+    symbol="XRPUSDT"
     interval="1m"
     strategy.update_load_klines(symbol=symbol,interval=interval)
 
@@ -113,11 +113,11 @@ if __name__=="__main__":
     start_time=time.time()
     #main()
     #load()
-    #load_klines()
+    load_klines()
     #select_klines()
     #main1()
     #update_symbols_klines()
-    update_symbol_klines()
+    #update_symbol_klines()
     #plot_klines()
     end_time=time.time()
     print((int(end_time-start_time))//60,"min",(int(end_time-start_time))%60,"s")
