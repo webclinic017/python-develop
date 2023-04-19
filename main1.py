@@ -5,6 +5,8 @@ from Strategy.Plot import *
 import numpy as np
 import statsmodels.api as sm
 import threading
+from multiprocessing import Process
+from multiprocessing import Pool
 
 def main():
     api_key = "c9UnWFmWxaY9gSl0eZ3H9a3EeNNutBmy6F9JGb7HKalGdqKUA5xViSrCbqhe144v"
@@ -28,7 +30,7 @@ def main():
     strategy.plot_K_Resistence(klines=klines, symbol=symbol, save=False, price_vol=vol_price)
 
 
-def main1(symbol,startTimestamp):
+def main1(symbol,startTimestamp,plotFlag=False,save=True):
     api_key = "c9UnWFmWxaY9gSl0eZ3H9a3EeNNutBmy6F9JGb7HKalGdqKUA5xViSrCbqhe144v"
     secret_key = "zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
     #symbol = "BTCUSDT"
@@ -48,7 +50,8 @@ def main1(symbol,startTimestamp):
     takers=taker.cumsum()
     buy_taker=klines["taker_buy_volume"]
     sell_taker=klines["Volume"]-klines["taker_buy_volume"]
-    plot_Kline(klines=show_data,symbol=symbol,resistence=takers,save=False)
+    if(plotFlag):
+        plot_Kline(klines=show_data,symbol=symbol,resistence=takers,save=save)
     return klines
 
 def desc_num_feature(klines,feature_name,bins=4000,edgecolor='k',**kwargs):
@@ -58,25 +61,41 @@ def desc_num_feature(klines,feature_name,bins=4000,edgecolor='k',**kwargs):
     ax.set_title(feature_name,size=15)
     plt.show()
 
+class MyThreadUpdate(threading.Thread):
+    def __init__(self,symbol):
+        threading.Thread.__init__(self)
+        self.symbol=symbol
+
+    def run(self):
+        main1(symbol=self.symbol,startTimestamp=None)
+
 def showAll():
     api_key = "c9UnWFmWxaY9gSl0eZ3H9a3EeNNutBmy6F9JGb7HKalGdqKUA5xViSrCbqhe144v"
     secret_key = "zcrWtNNTIiv7ydHV82zM0mI0tDhcEn3AMDm0X5fvGD6ANppxdMjphLAaFaoneaoL"
     strategy = Strategy(key=api_key, secret=secret_key)
     symbols=strategy.get_prefers()
+    threads=[]
     for symbol in symbols:
         print("Plot klines:",symbol)
-        main1(symbol,startTimestamp=None)
-
-
+        threads.append(MyThreadUpdate(symbol))
+    for t in threads:
+        t.start()
 
 if __name__=="__main__":
     pd.options.display.max_columns = None
     start_time=time.time()
 
-    #klines = main1("BTCUSDT", startTimestamp=None)
-    threads=[]
-    for start in range(1577836800000,int(time.time()*1000),500*5*60*1000):
-        main1("ETHUSDT",startTimestamp=start)
+    klines = main1("BTCUSDT", startTimestamp=None,plotFlag=True,save=False)
+    #print(klines)
+    '''
+    pools=Pool(20)
+    for start in range(1577836800000, int(time.time() * 1000), 500 * 5 * 60 * 1000):
+        #main1("ETHUSDT", startTimestamp=start,plotFlag=True,save=True)
+        pools.apply_async(main1, args=("ETHUSDT", start,True,True))
+
+    pools.close()
+    pools.join()
+    '''
 
     #showAll()
 

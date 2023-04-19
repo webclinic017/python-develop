@@ -4,6 +4,8 @@ import datetime
 import time
 import matplotlib.pyplot as plt
 import os
+import matplotlib.style as mplstyle
+mplstyle.use('fast')
 
 def plot_K(klines,symbol="TEST",trades=None,addplot=None):
     n=len(klines)
@@ -57,6 +59,8 @@ def plot_K_Resistance(klines,symbol="TEST",resistence=None,save=False):
 
 def plot_Kline(klines,symbol="TEST",resistence=None,save=False):
     n=len(klines)
+    start_time = time.time()
+    startS=klines.iloc[0,0]
     show_data=klines
     temp_data=show_data["Open_time"]
     for i in range(n):
@@ -83,10 +87,13 @@ def plot_Kline(klines,symbol="TEST",resistence=None,save=False):
         if (not os.path.exists("C:\\klines\\{}".format(symbol))):
             os.makedirs("C:\\klines\\{}".format(symbol))
             print("Create {} dirs".format(symbol))
-        plt.savefig("C:\\klines\\{}\\{}.png".format(symbol, symbol+str(int(time.time()))))
+        plt.savefig("C:\\klines\\{}\\{}.png".format(symbol, symbol+str(startS)))
         plt.title(symbol, loc="left")
         plt.close()
-        print("Save png success")
+        plt.clf()
+        print("Save png success",end=" ")
+        end_time = time.time()
+        print((int(end_time - start_time)) // 60, "min", (int(end_time - start_time)) % 60, "s")
         return
 
     mpf.plot(show_data, ax=ax1, volume=ax2, addplot=addplot, type="candle", style="yahoo")
