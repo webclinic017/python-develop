@@ -12,119 +12,133 @@ import pandas as pd
 import numpy as np
 import mplfinance as mpf
 
-class Strategy(object):
-    def __init__(self,key=None,secret=None,**kwargs):
-        self.futures=Futures(key=key,secret=secret,**kwargs)
-        self.database=Database()
 
-    def get_last_order(self,symbol):
-        data=self.database.get_last_order(symbol=symbol)
+class Strategy(object):
+    def __init__(self, key=None, secret=None, **kwargs):
+        self.futures = Futures(key=key, secret=secret, **kwargs)
+        self.database = Database()
+
+    def get_last_order(self, symbol):
+        data = self.database.get_last_order(symbol=symbol)
         return data
 
     def query_order(self, symbol, orderId=None, origClientOrderId=None, **kwargs):
-        response=self.futures.query_order(symbol=symbol,orderId=orderId,origClientOrderId=origClientOrderId,**kwargs)
+        response = self.futures.query_order(symbol=symbol, orderId=orderId, origClientOrderId=origClientOrderId,
+                                            **kwargs)
         return response
 
-    def open_short(self,symbol,type,quantity,**kwargs):
+    def open_short(self, symbol, type, quantity, **kwargs):
         if (type == "MARKET"):
-            response=self.futures.new_order(symbol=symbol,side="SELL",positionSide="SHORT",type=type,quantity=quantity,**kwargs)
+            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="SHORT", type=type,
+                                              quantity=quantity, **kwargs)
             response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
         else:
-            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="SHORT", type=type,quantity=quantity, timeInForce="GTX", **kwargs)
+            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="SHORT", type=type,
+                                              quantity=quantity, timeInForce="GTX", **kwargs)
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
         return response
 
     def close_short(self, symbol, type, quantity, **kwargs):
         if (type == "MARKET"):
-            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type,quantity=quantity, **kwargs)
+            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type,
+                                              quantity=quantity, **kwargs)
             response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
         else:
-            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type, quantity=quantity,timeInForce="GTX",**kwargs)
+            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="SHORT", type=type,
+                                              quantity=quantity, timeInForce="GTX", **kwargs)
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
         return response
 
-    def open_long(self,symbol,type,quantity,**kwargs):
-        if(type=="MARKET"):
-            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="LONG", type=type,quantity=quantity, **kwargs)
-            response["avgPrice"]=self.futures.query_order(symbol=symbol,orderId=response["orderId"])["avgPrice"]
-        else:
-            response=self.futures.new_order(symbol=symbol,side="BUY",positionSide="LONG",type=type,quantity=quantity,timeInForce="GTX",**kwargs)
-        #print(json.dumps(response,indent=2))
-        if (type == "MARKET" and not "code" in response.keys()):
-            self.database.insert_order(response=response)
-        return response
-
-    def close_long(self, symbol, type, quantity,**kwargs):
+    def open_long(self, symbol, type, quantity, **kwargs):
         if (type == "MARKET"):
-            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="LONG", type=type, quantity=quantity,**kwargs)
-            #print(json.dumps(response,indent=2))
+            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="LONG", type=type,
+                                              quantity=quantity, **kwargs)
             response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
         else:
-            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="LONG", type=type,quantity=quantity, timeInForce="GTX", **kwargs)
+            response = self.futures.new_order(symbol=symbol, side="BUY", positionSide="LONG", type=type,
+                                              quantity=quantity, timeInForce="GTX", **kwargs)
+        # print(json.dumps(response,indent=2))
+        if (type == "MARKET" and not "code" in response.keys()):
+            self.database.insert_order(response=response)
+        return response
+
+    def close_long(self, symbol, type, quantity, **kwargs):
+        if (type == "MARKET"):
+            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="LONG", type=type,
+                                              quantity=quantity, **kwargs)
+            # print(json.dumps(response,indent=2))
+            response["avgPrice"] = self.futures.query_order(symbol=symbol, orderId=response["orderId"])["avgPrice"]
+        else:
+            response = self.futures.new_order(symbol=symbol, side="SELL", positionSide="LONG", type=type,
+                                              quantity=quantity, timeInForce="GTX", **kwargs)
         if (type == "MARKET" and not "code" in response.keys()):
             self.database.insert_order(response=response)
         return response
 
     def cancel_order(self, symbol, orderId=None, origClientOrderId=None, **kwargs):
-        response=self.futures.cancel_order(symbol=symbol,orderId=orderId,origClientOrderId=origClientOrderId,**kwargs)
+        response = self.futures.cancel_order(symbol=symbol, orderId=orderId, origClientOrderId=origClientOrderId,
+                                             **kwargs)
         return response
 
-    def __get_buy_sell(self,starttime,interval,trades,count):
-        if(trades==None):
+    def __get_buy_sell(self, starttime, interval, trades, count):
+        if (trades == None):
             return None
-        max_qty=0
+        max_qty = 0
         for trade in trades:
-            max_qty=(max_qty if max_qty>abs(trade[2]) else abs(trade[2]))
-        addplot=[]
+            max_qty = (max_qty if max_qty > abs(trade[2]) else abs(trade[2]))
+        addplot = []
         for trade in trades:
-            buy_sell=[np.nan for i in range(count)]
-            if(trade[2]>0):
+            buy_sell = [np.nan for i in range(count)]
+            if (trade[2] > 0):
                 try:
                     buy_sell[(trade[0] - starttime) // interval] = trade[1]
-                    addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='^', color='g'))
+                    addplot.append(
+                        mpf.make_addplot(buy_sell, scatter=True, markersize=20 * abs(trade[2]) / max_qty, marker='^',
+                                         color='g'))
                 except:
                     pass
             else:
                 try:
                     buy_sell[(trade[0] - starttime) // interval] = trade[1]
-                    addplot.append(mpf.make_addplot(buy_sell, scatter=True, markersize=20*abs(trade[2])/max_qty, marker='v', color='r'))
+                    addplot.append(
+                        mpf.make_addplot(buy_sell, scatter=True, markersize=20 * abs(trade[2]) / max_qty, marker='v',
+                                         color='r'))
                 except:
                     pass
         return addplot
 
-
-    def plot_K(self,klines, symbol="TEST",trades=None):
-        interval=klines[1][0]-klines[0][0]
-        count=len(klines)
-        starttime=klines[0][0]
-        addplot=self.__get_buy_sell(starttime=starttime,interval=interval,trades=trades,count=count)
+    def plot_K(self, klines, symbol="TEST", trades=None):
+        interval = klines[1][0] - klines[0][0]
+        count = len(klines)
+        starttime = klines[0][0]
+        addplot = self.__get_buy_sell(starttime=starttime, interval=interval, trades=trades, count=count)
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
                                                   "Close": 4, "Volume": 5, "Close_time": 6,
                                                   "Quote_asset_volume": 7, "taker_buy_volume": 8})
         show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
-        Plot.plot_K(klines=show_data,symbol=symbol,addplot=addplot)
+        Plot.plot_K(klines=show_data, symbol=symbol, addplot=addplot)
 
-    def __get_klines_resisitence(self,price,taker):
-        resistence=[]
+    def __get_klines_resisitence(self, price, taker):
+        resistence = []
         for i in range(len(price)):
-            resistence.append(abs(taker[i])/price[i])
+            resistence.append(abs(taker[i]) / price[i])
         return resistence
 
-    def __get_taker(self,coin_data):
+    def __get_taker(self, coin_data):
         vol = coin_data["Volume"]
         taker_buy = coin_data["taker_buy_volume"]
         taker_sell = vol - taker_buy
         taker = (taker_buy - taker_sell)
-        for i in range(1,len(taker)):
-            taker[i]+=taker[i-1]
+        for i in range(1, len(taker)):
+            taker[i] += taker[i - 1]
         return taker
 
-    def __normalization(self,vols,prices):
-        volans=[]
-        priceans=[]
-        n=len(vols)
+    def __normalization(self, vols, prices):
+        volans = []
+        priceans = []
+        n = len(vols)
         minvols = min(vols)
         maxvols = max(vols)
         minprices = min(prices)
@@ -132,41 +146,41 @@ class Strategy(object):
         for i in range(n):
             volans.append((vols[i] - minvols) / (maxvols - minvols))
             priceans.append((prices[i] - minprices) / (maxprices - minprices))
-        ans=[]
+        ans = []
         for i in range(n):
-            ans.append(priceans[i]-volans[i])
+            ans.append(priceans[i] - volans[i])
         return ans
 
-    def __get_price_vol(self,coin_data):
-        #price_vol=(coin_data["Close"]-coin_data["Open"])/coin_data["Volume"]
-        vols=[]
+    def __get_price_vol(self, coin_data):
+        # price_vol=(coin_data["Close"]-coin_data["Open"])/coin_data["Volume"]
+        vols = []
         for i in range(len(coin_data["Open"])):
-            if(coin_data["Close"][i]>=coin_data["Open"][i]):
+            if (coin_data["Close"][i] >= coin_data["Open"][i]):
                 vols.append(coin_data["Volume"][i])
             else:
                 vols.append(-coin_data["Volume"][i])
-        prices=[]
-        prices.append(coin_data["Close"][0]-coin_data["Open"][0])
-        for i in range(1,len(coin_data["Open"])):
-            prices.append(coin_data["Close"][i]-coin_data["Close"][i-1])
-        for i in range(1,len(vols)):
+        prices = []
+        prices.append(coin_data["Close"][0] - coin_data["Open"][0])
+        for i in range(1, len(coin_data["Open"])):
+            prices.append(coin_data["Close"][i] - coin_data["Close"][i - 1])
+        for i in range(1, len(vols)):
             vols[i] += (vols[i - 1])
             prices[i] += (prices[i - 1])
-        ans=self.__normalization(vols=vols,prices=prices)
+        ans = self.__normalization(vols=vols, prices=prices)
         return ans
 
-    def plot_K_Resistence(self,klines, symbol="TEST",save=False,price_vol=None):
+    def plot_K_Resistence(self, klines, symbol="TEST", save=False, price_vol=None):
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
                                                   "Close": 4, "Volume": 5, "Close_time": 6,
                                                   "Quote_asset_volume": 7, "taker_buy_volume": 8})
         show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
-        #taker = self.__get_taker(coin_data=coin_data)
-        #resistence = self.__get_klines_resisitence(price=coin_data["Close"]-coin_data["Open"],taker=taker)
-        if(price_vol==None):
-            price_vol=self.__get_price_vol(coin_data=coin_data)
-        Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=price_vol,save=save)
+        # taker = self.__get_taker(coin_data=coin_data)
+        # resistence = self.__get_klines_resisitence(price=coin_data["Close"]-coin_data["Open"],taker=taker)
+        if (price_vol == None):
+            price_vol = self.__get_price_vol(coin_data=coin_data)
+        Plot.plot_K_Resistance(klines=show_data, symbol=symbol, resistence=price_vol, save=save)
 
-    def klines_aggregate(self,klines,vol_price,interval="5m"):
+    def klines_aggregate(self, klines, vol_price, interval="5m"):
         count = self.count__klines(interval=interval)
         start_k = 0
         for kline in klines:
@@ -190,7 +204,7 @@ class Strategy(object):
             temp[6] = temp[0] + count * (60 * 1000) - 1
             return_klines.append(temp)
             return_vol_price.append(temp_vol_price)
-        return return_klines,return_vol_price
+        return return_klines, return_vol_price
 
     #  ************  #
     def select_klines_vol_price(self, symbol, interval, limit, startTimestamp=None):
@@ -204,27 +218,27 @@ class Strategy(object):
             vols.append(klines[0][5])
         else:
             vols.append(-klines[0][5])
-        for i in range(1,n):
-            vols.append((klines[i][5] if (klines[i][4] >= klines[i][1]) else -klines[i][5])+vols[-1])
+        for i in range(1, n):
+            vols.append((klines[i][5] if (klines[i][4] >= klines[i][1]) else -klines[i][5]) + vols[-1])
             prices.append(klines[i][4])
         ans = self.__normalization(vols=vols, prices=prices)
-        end=time.time()
-        return klines,ans
+        end = time.time()
+        return klines, ans
 
-    def plot_K_Vol_Price(self,klines, symbol="TEST",save=False):
+    def plot_K_Vol_Price(self, klines, symbol="TEST", save=False):
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
                                                   "Close": 4, "Volume": 5, "Close_time": 6,
                                                   "Quote_asset_volume": 7, "taker_buy_volume": 8})
-        #show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
-        vol_price=self.__get_price_vol(coin_data=coin_data)
-        return_klines,return_vol_Price=self.klines_aggregate(klines=klines,vol_price=vol_price,interval="30m")
+        # show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
+        vol_price = self.__get_price_vol(coin_data=coin_data)
+        return_klines, return_vol_Price = self.klines_aggregate(klines=klines, vol_price=vol_price, interval="5m")
         coin_data = pd.DataFrame(return_klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
-                                                  "Close": 4, "Volume": 5, "Close_time": 6,
-                                                  "Quote_asset_volume": 7, "taker_buy_volume": 8})
+                                                         "Close": 4, "Volume": 5, "Close_time": 6,
+                                                         "Quote_asset_volume": 7, "taker_buy_volume": 8})
         show_data = coin_data.loc[:, ["Open_time", "Open", "High", "Low", "Close", "Volume"]]
-        Plot.plot_K_Resistance(klines=show_data,symbol=symbol,resistence=return_vol_Price,save=save)
+        Plot.plot_K_Resistance(klines=show_data, symbol=symbol, resistence=return_vol_Price, save=save)
 
-    def plot_Trades_Scatter(self,symbol,minqty=20, limit=200, desc=True):
+    def plot_Trades_Scatter(self, symbol, minqty=20, limit=200, desc=True):
         trades = self.database.select_trade(symbol=symbol, minqty=minqty, limit=limit, desc=desc)
         x = []
         y = []
@@ -238,7 +252,7 @@ class Strategy(object):
             else:
                 z.append("red")
         plt.scatter(x, y, c=z)
-        #print(z)
+        # print(z)
         plt.show()
 
     def plot_date_trades(self, symbol, minqty=2, limit=200, desc=True):
@@ -258,22 +272,23 @@ class Strategy(object):
         plt.plot_date(times, qty)
         plt.show()
 
-    def select_klines(self,symbol,interval,limit,startTimestamp=None):
-        if(interval=="1m"):
-            return self.database.select_klines(symbol,interval,limit,startTimestamp=startTimestamp)
-        count=self.count__klines(interval=interval)
-        klines=self.database.select_klines(symbol=symbol,interval="1m",limit=limit*count,startTimestamp=startTimestamp)
-        start_k=0
+    def select_klines(self, symbol, interval, limit, startTimestamp=None):
+        if (interval == "1m"):
+            return self.database.select_klines(symbol, interval, limit, startTimestamp=startTimestamp)
+        count = self.count__klines(interval=interval)
+        klines = self.database.select_klines(symbol=symbol, interval="1m", limit=limit * count,
+                                             startTimestamp=startTimestamp)
+        start_k = 0
         for kline in klines:
-            if((kline[0]//1000)%(24*60*60)==0):
-                start_k=klines.index(kline)
+            if ((kline[0] // 1000) % (24 * 60 * 60) == 0):
+                start_k = klines.index(kline)
                 break
-        start_k=start_k%count
-        #print(start_k)
-        return_klines=[]
-        for i in range(start_k,len(klines),count):
-            temp=klines[i]
-            for j in range(i+1,i+count if i+count<len(klines) else len(klines)):
+        start_k = start_k % count
+        # print(start_k)
+        return_klines = []
+        for i in range(start_k, len(klines), count):
+            temp = klines[i]
+            for j in range(i + 1, i + count if i + count < len(klines) else len(klines)):
                 temp[5] += klines[j][5]
                 temp[7] += klines[j][7]
                 temp[8] += klines[j][8]
@@ -284,15 +299,14 @@ class Strategy(object):
             return_klines.append(temp)
         return return_klines
 
-
-    def count__klines(self,interval):
+    def count__klines(self, interval):
         if (interval == "3m"):
             return 3
-        if(interval=="5m"):
+        if (interval == "5m"):
             return 5
-        if(interval=="15m"):
+        if (interval == "15m"):
             return 15
-        elif(interval=="30m"):
+        elif (interval == "30m"):
             return 30
         elif (interval == "1h"):
             return 60
@@ -309,48 +323,47 @@ class Strategy(object):
         else:
             return 1
 
-    def update_klines(self,symbol):
-        self.__update_klines(symbol=symbol,interval="1m")
+    def update_klines(self, symbol):
+        self.__update_klines(symbol=symbol, interval="1m")
 
-    def update_load_klines(self,symbol,interval="1m"):
-        self.__update_load_klines(symbol=symbol,interval=interval)
+    def update_load_klines(self, symbol, interval="1m"):
+        self.__update_load_klines(symbol=symbol, interval=interval)
 
-    def __update_load_klines(self,symbol, interval,files_path="C:\\data"):
-        string="open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore\n"
+    def __update_load_klines(self, symbol, interval, files_path="C:\\data"):
+        string = "open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore\n"
         files = os.listdir(files_path)
         for file in files:
             file_path = files_path + "\\{}".format(file)
             print("load file:", file_path)
-            line=""
-            with open(file_path,"r+") as f:
-                line=f.readline()
-                f.seek(0,0)
+            line = ""
+            with open(file_path, "r+") as f:
+                line = f.readline()
+                f.seek(0, 0)
                 content = f.read()
-                if(line != string):
+                if (line != string):
                     f.seek(0, 0)
-                    f.write(string+content)
-            self.__load_klines_csv(file_path=file_path, symbol=symbol,interval=interval)
+                    f.write(string + content)
+            self.__load_klines_csv(file_path=file_path, symbol=symbol, interval=interval)
 
-    def __load_klines_csv(self,file_path,symbol,interval="1m"):
-        last_kline = self.database.get_last_kline(symbol=symbol,interval=interval)
+    def __load_klines_csv(self, file_path, symbol, interval="1m"):
+        last_kline = self.database.get_last_kline(symbol=symbol, interval=interval)
         with open(file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            klines=[]
+            klines = []
             for item in reader:
-                if(int(item["open_time"])>last_kline):
-                    kline=[]
+                if (int(item["open_time"]) > last_kline):
+                    kline = []
                     for i in item.values():
                         kline.append(i)
                     kline.pop()
                     klines.append(kline)
-                    if(len(klines)%10000==0):
+                    if (len(klines) % 10000 == 0):
                         self.database.insert_klines(symbol=symbol, interval=interval, klines=klines)
-                        klines=[]
-            if(len(klines)!=0):
-                self.database.insert_klines(symbol=symbol,interval=interval,klines=klines)
+                        klines = []
+            if (len(klines) != 0):
+                self.database.insert_klines(symbol=symbol, interval=interval, klines=klines)
 
-
-    def __update_klines(self,symbol, interval, **kwargs):
+    def __update_klines(self, symbol, interval, **kwargs):
         table_klines_name = "{}_KLINES_{}".format(symbol, interval)
         if (self.database.exist_table(table_name=table_klines_name)):
             startTime = self.database.get_maxOpenTime(symbol=symbol, interval=interval)
@@ -371,7 +384,7 @@ class Strategy(object):
             startTime = self.database.get_maxOpenTime(symbol=symbol, interval=interval)
             self.database.delete_maxOpenTime(symbol=symbol, interval=interval, timestamp=startTime)
 
-    def update_trades(self,symbol,minqty=2):
+    def update_trades(self, symbol, minqty=2):
         startid = self.database.get_last_trade(symbol=symbol) + 1
         items = []
         while (True):
@@ -401,56 +414,56 @@ class Strategy(object):
         return symbols
 
     def balance(self, **kwargs):
-        responses=self.futures.balance()
-        data=[]
+        responses = self.futures.balance()
+        data = []
         for response in responses:
-            if(float(response["balance"])!=0):
+            if (float(response["balance"]) != 0):
                 data.append(response)
         return data
 
     def account(self, **kwargs):
-        responses=self.futures.account()
-        data={}
-        data["totalInitialMargin"]=responses["totalInitialMargin"]
-        data["totalMaintMargin"]=responses["totalMaintMargin"]
-        data["totalWalletBalance"]=responses["totalWalletBalance"]
-        data["totalUnrealizedProfit"]=responses["totalUnrealizedProfit"]
-        data["totalMarginBalance"]=responses["totalMarginBalance"]
-        data["totalPositionInitialMargin"]=responses["totalPositionInitialMargin"]
-        data["totalOpenOrderInitialMargin"]=responses["totalOpenOrderInitialMargin"]
-        data["totalCrossWalletBalance"]=responses["totalCrossWalletBalance"]
-        data["totalCrossUnPnl"]=responses["totalCrossUnPnl"]
-        data["availableBalance"]=responses["availableBalance"]
-        data["maxWithdrawAmount"]=responses["maxWithdrawAmount"]
-        assets=[]
+        responses = self.futures.account()
+        data = {}
+        data["totalInitialMargin"] = responses["totalInitialMargin"]
+        data["totalMaintMargin"] = responses["totalMaintMargin"]
+        data["totalWalletBalance"] = responses["totalWalletBalance"]
+        data["totalUnrealizedProfit"] = responses["totalUnrealizedProfit"]
+        data["totalMarginBalance"] = responses["totalMarginBalance"]
+        data["totalPositionInitialMargin"] = responses["totalPositionInitialMargin"]
+        data["totalOpenOrderInitialMargin"] = responses["totalOpenOrderInitialMargin"]
+        data["totalCrossWalletBalance"] = responses["totalCrossWalletBalance"]
+        data["totalCrossUnPnl"] = responses["totalCrossUnPnl"]
+        data["availableBalance"] = responses["availableBalance"]
+        data["maxWithdrawAmount"] = responses["maxWithdrawAmount"]
+        assets = []
         for asset in responses["assets"]:
-            if(float(asset["walletBalance"])!=0):
+            if (float(asset["walletBalance"]) != 0):
                 assets.append(asset)
-        data["assets"]=assets
-        positions=[]
+        data["assets"] = assets
+        positions = []
         for position in responses["positions"]:
-            if(float(position["positionInitialMargin"])!=0):
+            if (float(position["positionInitialMargin"]) != 0):
                 positions.append(position)
-        data["positions"]=positions
+        data["positions"] = positions
         return data
 
-    def __load_trades_csv(self,file_path,symbol,minqty):
-        i=1
-        qty=minqty
-        flag=False
-        last_trade=self.database.get_last_trade(symbol=symbol)
-        #print(last_trade)
+    def __load_trades_csv(self, file_path, symbol, minqty):
+        i = 1
+        qty = minqty
+        flag = False
+        last_trade = self.database.get_last_trade(symbol=symbol)
+        # print(last_trade)
         with open(file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             items = []
             for item in reader:
                 if (float(item["qty"]) >= qty):
-                    if(not flag and int(item["id"])>last_trade):
-                        flag=True
-                    elif(not flag):
+                    if (not flag and int(item["id"]) > last_trade):
+                        flag = True
+                    elif (not flag):
                         continue
                     items.append(item)
-                    #print(item)
+                    # print(item)
                     i += 1
                     if (i % 10000 == 0):
                         self.database.batch_insert_trade(symbol=symbol, trades=items)
@@ -458,16 +471,16 @@ class Strategy(object):
                         print("YES", i)
             if (len(items) != 0):
                 self.database.batch_insert_trade(symbol=symbol, trades=items)
-                print(file_path,"end",i,"\n")
+                print(file_path, "end", i, "\n")
 
-    def load_files_trades(self,symbol,files_path="C:\\data",minqty=0):
+    def load_files_trades(self, symbol, files_path="C:\\data", minqty=0):
         files = os.listdir(files_path)
         for file in files:
-            file_path=files_path+"\\{}".format(file)
-            print("load file:",file_path)
-            self.__load_trades_csv(file_path=file_path,symbol=symbol,minqty=minqty)
+            file_path = files_path + "\\{}".format(file)
+            print("load file:", file_path)
+            self.__load_trades_csv(file_path=file_path, symbol=symbol, minqty=minqty)
 
-    def write_datebase_to_csv(self,symbol,minqty,limit,out_file="E:\\csv"):
+    def write_datebase_to_csv(self, symbol, minqty, limit, out_file="E:\\csv"):
         sel = self.database.select_trade_to_csv(symbol=symbol, minqty=minqty, limit=limit)
         times = []
         prices = []
@@ -482,41 +495,41 @@ class Strategy(object):
             prices.append(price)
             qtys.append(qty)
         dataframe = pd.DataFrame({'time': times, 'price': prices, 'qty': qtys})
-        out="{}\\{}.csv".format(out_file,symbol)
+        out = "{}\\{}.csv".format(out_file, symbol)
         dataframe.to_csv(out, index=False, sep=',')
 
-    def change_all_lever(self,leverage=20):
+    def change_all_lever(self, leverage=20):
         info = self.futures.exchange_info()["symbols"]
         for i in info:
             response = self.futures.change_leverage(symbol=i["symbol"], leverage=leverage)
-            if('code' in response.keys()):
-                response = self.futures.change_leverage(symbol=i["symbol"], leverage=leverage//2)
+            if ('code' in response.keys()):
+                response = self.futures.change_leverage(symbol=i["symbol"], leverage=leverage // 2)
                 if ('code' in response.keys()):
-                    response = self.futures.change_leverage(symbol=i["symbol"], leverage=leverage//4)
-            print(i["symbol"], response,len(info),info.index(i))
+                    response = self.futures.change_leverage(symbol=i["symbol"], leverage=leverage // 4)
+            print(i["symbol"], response, len(info), info.index(i))
 
-    def depth(self,symbol,limit=100):
-        response=self.futures.depth(symbol=symbol,limit=limit)
+    def depth(self, symbol, limit=100):
+        response = self.futures.depth(symbol=symbol, limit=limit)
         return response
 
-    def plot_Depth(self,depths,symbol):
-        Plot.plot_Depth(depths=depths,symbol=symbol)
+    def plot_Depth(self, depths, symbol):
+        Plot.plot_Depth(depths=depths, symbol=symbol)
 
-    def get_order_history(self,symbol,orderId,**kwargs):
-        response=self.futures.query_order(symbol=symbol,orderId=orderId,**kwargs)
+    def get_order_history(self, symbol, orderId, **kwargs):
+        response = self.futures.query_order(symbol=symbol, orderId=orderId, **kwargs)
         return response
 
     def group_qty_sum(self, symbol):
-        results=self.database.group_qty_sum(symbol)
+        results = self.database.group_qty_sum(symbol)
         return results
 
     def group_price_sum(self, symbol):
-        results=self.database.group_price_sum(symbol)
+        results = self.database.group_price_sum(symbol)
         return results
 
-    def plot_trades(self,symbol):
+    def plot_trades(self, symbol):
         results = self.group_qty_sum(symbol=symbol)
-        #print(results)
+        # print(results)
         dicts = {}
         for i in results:
             try:
@@ -531,7 +544,7 @@ class Strategy(object):
         plt.scatter(qtys, nums)
         plt.show()
 
-    def get_klines_pandas(self,klines):
+    def get_klines_pandas(self, klines):
         n = len(klines)
         fields = "Open_time,Open,High,Low,Close,Volume,Close_time,Quote_asset_volume"
         coin_data = pd.DataFrame(klines, columns={"Open_time": 0, "Open": 1, "High": 2, "Low": 3,
@@ -546,11 +559,11 @@ class Strategy(object):
         return show_data
 
     def get_prefers(self):
-        symbols=["BTCUSDT","ETHUSDT","AVAXUSDT","1000SHIBUSDT","ATOMUSDT",
-                 "LTCUSDT","MANAUSDT","SANDUSDT","NEARUSDT","DOTUSDT",
-                 "FTMUSDT","GALAUSDT","MATICUSDT","FILUSDT","LINKUSDT",
-                 "APTUSDT","ETCUSDT","SOLUSDT","ADAUSDT","XRPUSDT"]
-        #,"DYDXUSDT","GTCUSDT","APEUSDT","ARUSDT","CHZUSDT","LRCUSDT"
+        symbols = ["BTCUSDT", "ETHUSDT", "AVAXUSDT", "1000SHIBUSDT", "ATOMUSDT",
+                   "LTCUSDT", "MANAUSDT", "SANDUSDT", "NEARUSDT", "DOTUSDT",
+                   "FTMUSDT", "GALAUSDT", "MATICUSDT", "FILUSDT", "LINKUSDT",
+                   "APTUSDT", "ETCUSDT", "SOLUSDT", "ADAUSDT", "XRPUSDT"]
+        # ,"DYDXUSDT","GTCUSDT","APEUSDT","ARUSDT","CHZUSDT","LRCUSDT"
         return symbols
 
     def update_all_symbols_klines(self):
@@ -559,11 +572,10 @@ class Strategy(object):
             self.update_klines(symbol=symbol)
         print("Update all klines done")
 
-    def get_tardes_limit(self,symbol,starttime,endtime,count):
-        trades=self.database.get_tardes_limit(symbol=symbol,starttime=starttime,endtime=endtime,count=count)
+    def get_tardes_limit(self, symbol, starttime, endtime, count):
+        trades = self.database.get_tardes_limit(symbol=symbol, starttime=starttime, endtime=endtime, count=count)
         return trades
 
-    def plot_tarde_price(self,symbol="ETHUSDTTEST"):
+    def plot_tarde_price(self, symbol="ETHUSDTTEST"):
         priceGroup = self.database.group_price_sum(symbol=symbol)
         Plot.plot_trade_price(priceGroup=priceGroup)
-

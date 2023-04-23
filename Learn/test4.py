@@ -1,23 +1,26 @@
 import threading
 import time
 
-def Function(i,n,name):
+
+def Function(i, n, name):
     time.sleep(n)
-    print(i,name)
+    print(i, name)
+
 
 class MyThread(threading.Thread):
-    def __init__(self,interval=1,threadName="Default"):
+    def __init__(self, interval=1, threadName="Default"):
         threading.Thread.__init__(self)
-        self.interval=interval
-        self.threadName=threadName
+        self.interval = interval
+        self.threadName = threadName
 
     def run(self):
         for i in range(10):
-            Function(i,self.interval,self.threadName)
+            Function(i, self.interval, self.threadName)
 
-threads=[]
+
+threads = []
 for i in range(10):
-    t=MyThread(interval=2+i,threadName="{} thread".format(i))
+    t = MyThread(interval=2 + i, threadName="{} thread".format(i))
     threads.append(t)
 
 for t in threads:

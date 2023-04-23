@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib
 
 # 设置matplotlib正常显示中文和负号
-matplotlib.rcParams['font.sans-serif']=['SimHei']   # 用黑体显示中文
-matplotlib.rcParams['axes.unicode_minus']=False     # 正常显示负号
+matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
+matplotlib.rcParams['axes.unicode_minus'] = False  # 正常显示负号
 # 随机生成（10000,）服从正态分布的数据
 data = np.random.randn(10000)
 """
